@@ -26,11 +26,22 @@ class MainViewModel(
     private var firmwareBytes: ByteArray? = null
     val deviceStateFlow = DeviceRepository.stateFlow
     
+    init {
+        Log.i(TAG, "MainViewModel created")
+    }
+    
+    override fun onCleared() {
+        Log.i(TAG, "MainViewModel cleared")
+        super.onCleared()
+    }
+    
     fun setFirmware(
         fileName: String,
         bytes: ByteArray
     )
     {
+        Log.i(TAG, "setFirmware  fileName=${fileName}")
+        
         firmwareBytes = bytes
     
         uiState = uiState.copy(

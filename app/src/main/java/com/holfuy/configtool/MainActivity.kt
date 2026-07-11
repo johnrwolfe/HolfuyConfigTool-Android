@@ -399,7 +399,7 @@ class MainActivity : ComponentActivity()
     override fun onDestroy()
     {
 
-        Log.d(
+        Log.i(
             TAG,
             "onDestroy changingConfigurations=$isChangingConfigurations"
         )
@@ -440,6 +440,36 @@ class MainActivity : ComponentActivity()
             "onConfigurationChanged keyboard=${newConfig.keyboard} " +
             "hardKeyboardHidden=${newConfig.hardKeyboardHidden} " +
             "navigation=${newConfig.navigation}"
+        )
+    }
+    
+    override fun onPause()
+    {
+        Log.i(
+            TAG,
+            "onPause"
+        )
+    
+        super.onPause()
+    }
+    
+    override fun onStop()
+    {
+        Log.i(
+            TAG,
+            "onStop"
+        )
+    
+        super.onStop()
+    }
+    
+    override fun onStart()
+    {
+        super.onStart()
+    
+        Log.i(
+            TAG,
+            "onStart"
         )
     }
 }
