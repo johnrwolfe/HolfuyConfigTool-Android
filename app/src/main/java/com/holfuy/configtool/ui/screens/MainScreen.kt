@@ -55,6 +55,37 @@ fun MainScreen(
             Text("Help")
         }
         
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                  Text("Firmware File")
+                  
+                  Text(
+                      uiState.firmwareFileName
+                          ?: "No file selected"
+                  )
+                  
+                  uiState.firmwareSize?.let {
+                      Text("Size: $it bytes")
+                  }
+              }
+          
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            enabled = !deviceState.updateInProgress,
+            onClick = onSelectFirmwareClick
+        ) {
+            Text("Select Firmware")
+        }
+        
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
@@ -88,39 +119,6 @@ fun MainScreen(
                         "Disconnected"
                 )
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                  Text("Firmware File")
-                  
-                  Text(
-                      uiState.firmwareFileName
-                          ?: "No file selected"
-                  )
-                  
-                  uiState.firmwareSize?.let {
-                      Text("Size: $it bytes")
-                  }
-              }
-          
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            enabled = 
-                deviceState.connected &&
-                !deviceState.updateInProgress,
-            onClick = onSelectFirmwareClick
-        ) {
-            Text("Select Firmware")
         }
 
         Spacer(modifier = Modifier.height(8.dp))
