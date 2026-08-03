@@ -23,6 +23,8 @@ import com.holfuy.configtool.BuildConfig
 import com.holfuy.configtool.device.DeviceState
 import com.holfuy.configtool.ui.state.MainUiState
 
+private val SECTION_SPACING = 24.dp
+
 @Composable
 fun MainScreen(
     uiState: MainUiState,
@@ -32,7 +34,7 @@ fun MainScreen(
     onUpdateFirmwareClick: () -> Unit,
     onHelpClick: () -> Unit
 )
-{ 
+{
     Column(
         Modifier
             .fillMaxSize()
@@ -41,40 +43,18 @@ fun MainScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.Top
     )
-    {      
+    {
         Text(
             text = "Holfuy Upgrader",
             style = MaterialTheme.typography.headlineMedium
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Button(
             onClick = onHelpClick
         ) {
             Text("Help")
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                  Text("Firmware File")
-                  
-                  Text(
-                      uiState.firmwareFileName
-                          ?: "No file selected"
-                  )
-                  
-                  uiState.firmwareSize?.let {
-                      Text("Size: $it bytes")
-                  }
-              }
-          
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -85,11 +65,32 @@ fun MainScreen(
         ) {
             Text("Select Firmware")
         }
-        
-        Spacer(modifier = Modifier.height(24.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Selected Firmware")
+
+                Text(
+                    uiState.firmwareFileName
+                        ?: "No file selected"
+                )
+
+                uiState.firmwareSize?.let {
+                    Text("Size: $it bytes")
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(SECTION_SPACING))
 
         Button(
-            enabled = 
+            enabled =
                 deviceState.attached &&
                 !deviceState.connected &&
                 !deviceState.updateInProgress,
@@ -103,7 +104,7 @@ fun MainScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(SECTION_SPACING))
 
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -112,6 +113,7 @@ fun MainScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text("Connection Status")
+
                 Text(
                     if (deviceState.connected)
                         "Connected"
@@ -121,33 +123,10 @@ fun MainScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        if (deviceState.updateInProgress) {
-        
-            Spacer(modifier = Modifier.height(16.dp))
-        
-            LinearProgressIndicator(
-                progress = {
-                    deviceState.updateProgress / 100f
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-        
-            Text(
-                "${deviceState.updateProgress}%"
-            )
-        }
-        
-        if (uiState.updateCompleted) {
-        
-            Text(
-                "Firmware update complete"
-            )
-        }
+        Spacer(modifier = Modifier.height(SECTION_SPACING))
 
         Button(
-            enabled = 
+            enabled =
                 deviceState.connected &&
                 !deviceState.updateInProgress &&
                 uiState.firmwareFileName != null,
@@ -156,7 +135,47 @@ fun MainScreen(
             Text("Update Firmware")
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Update Status")
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                when {
+                    deviceState.updateInProgress -> {
+
+                        LinearProgressIndicator(
+                            progress = {
+                                deviceState.updateProgress / 100f
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text("${deviceState.updateProgress}%")
+                    }
+
+                    uiState.updateCompleted -> {
+
+                        Text("Firmware update complete")
+                    }
+
+                    else -> {
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(SECTION_SPACING))
 
         Text(
             text = "Version ${BuildConfig.VERSION_NAME}",
