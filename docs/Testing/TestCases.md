@@ -46,9 +46,9 @@ Execute the firmware update procedure exactly as described in the User Guide.
 
 **Expected Results**
 
+- Firmware file is successfully selected.
 - USB permission is granted.
 - Connection succeeds.
-- Firmware file is successfully selected.
 - Firmware update completes successfully.
 - Progress indication reaches completion.
 - Application remains responsive.
@@ -72,9 +72,9 @@ start the application after the station has been powered on.
 
 **Expected Results**
 
+- Firmware file is successfully selected.
 - USB permission is granted.
 - Connection succeeds.
-- Firmware file is successfully selected.
 - Firmware update completes successfully.
 - Progress indication reaches completion.
 - Application remains responsive.
