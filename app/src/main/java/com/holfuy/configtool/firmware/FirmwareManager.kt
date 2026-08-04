@@ -4,6 +4,9 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
+import kotlinx.serialization.json.Json
+
+private val json = Json {ignoreUnknownKeys = true}
 
 class FirmwareManager(
     private val context: Context,
@@ -14,6 +17,10 @@ class FirmwareManager(
         private const val TAG = "HolfuyUSB-FW"
     }
 
+    private fun parseManifest(
+        text: String
+    ): FirmwareManifest = json.decodeFromString(text)
+        
     fun listFirmwareFiles()
     {
         val folderUri: Uri =
