@@ -7,7 +7,7 @@ import androidx.documentfile.provider.DocumentFile
 
 class FirmwareManager(
     private val context: Context,
-    private val firmwareLibrary: FirmwareLibrary
+    private val firmwareRepository: FirmwareRepository
 )
 {
     companion object {
@@ -17,12 +17,12 @@ class FirmwareManager(
     fun listFirmwareFiles()
     {
         val folderUri: Uri =
-            firmwareLibrary.folderUri
+            firmwareRepository.folderUri
                 ?: run {
 
                     Log.i(
                         TAG,
-                        "Firmware library not configured."
+                        "Firmware repository not configured."
                     )
 
                     return
@@ -38,7 +38,7 @@ class FirmwareManager(
 
             Log.w(
                 TAG,
-                "Unable to open firmware library."
+                "Unable to open firmware repository."
             )
 
             return
@@ -46,7 +46,7 @@ class FirmwareManager(
 
         Log.i(
             TAG,
-            "Firmware library:"
+            "Firmware repository:"
         )
 
         folder.listFiles()

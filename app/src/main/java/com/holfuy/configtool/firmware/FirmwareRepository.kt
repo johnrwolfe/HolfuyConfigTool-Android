@@ -3,11 +3,11 @@ package com.holfuy.configtool.firmware
 import android.content.Context
 import android.net.Uri
 
-class FirmwareLibrary(
+class FirmwareRepository(
     private val context: Context
 ) {
     companion object {
-        private const val PREFS_NAME = "firmware_library"
+        private const val PREFS_NAME = "firmware_repository"
         private const val KEY_FOLDER_URI = "folder_uri"
     }
 

@@ -28,8 +28,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
-import com.holfuy.configtool.firmware.FirmwareLibrary
 import com.holfuy.configtool.firmware.FirmwareManager
+import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
 import com.holfuy.configtool.ui.theme.HolfuyConfigToolTheme
@@ -378,14 +378,14 @@ class MainActivity : ComponentActivity()
                 )
                 activityViewModel = viewModel
                 
-                val firmwareLibrary = remember {
-                    FirmwareLibrary(this)
+                val firmwareRepository = remember {
+                    FirmwareRepository(this)
                 }
 
                 val firmwareManager = remember {
                     FirmwareManager(
                         this,
-                        firmwareLibrary
+                        firmwareRepository
                     )
                 }
                 
@@ -403,7 +403,7 @@ class MainActivity : ComponentActivity()
                             Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                         )
                 
-                        firmwareLibrary.folderUri = uri
+                        firmwareRepository.folderUri = uri
                 
                         Log.i(
                             TAG,
@@ -480,7 +480,7 @@ class MainActivity : ComponentActivity()
                             
                         onChooseFirmwareFolderClick = {
                         
-                            if (!firmwareLibrary.isConfigured) {
+                            if (!firmwareRepository.isConfigured) {
                         
                                 firmwareFolderPicker.launch(null)
                         
