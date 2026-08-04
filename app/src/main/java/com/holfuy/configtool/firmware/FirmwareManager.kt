@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -46,9 +48,61 @@ class FirmwareManager(
             downloadManifest()
         )
     }
-        
+    
+    suspend fun refresh()
+    {
+        withContext(Dispatchers.IO) {
+    
+            try {
+    
+                val manifest = loadManifest()
+    
+                Log.i(
+                    TAG,
+                    "Found ${manifest.firmwares.size} firmware file(s)."
+                )
+    
+                manifest.firmwares.forEach {
+    
+                    Log.i(
+                        TAG,
+                        "${it.modem} -> ${it.filename}"
+                    )
+                }
+    
+            } catch (e: Exception) {
+    
+                Log.w(
+                    TAG,
+                    "Unable to refresh firmware library.",
+                    e
+                )
+            }
+        }
+    }
+
     fun listFirmwareFiles()
     {
+        val manifest = loadManifest()
+    
+        Log.i(
+            TAG,
+            "Manifest contains ${manifest.firmwares.size} firmware files."
+        )
+    
+        manifest.firmwares.forEach {
+    
+            Log.i(
+                TAG,
+                "${it.modem} -> ${it.filename}"
+            )
+        }
+    }
+        
+/*
+    fun listFirmwareFiles()
+    {
+   
         val folderUri: Uri =
             firmwareRepository.folderUri
                 ?: run {
@@ -93,5 +147,7 @@ class FirmwareManager(
                     "${file.name}  ${file.length()} bytes"
                 )
             }
+
     }
+*/
 }

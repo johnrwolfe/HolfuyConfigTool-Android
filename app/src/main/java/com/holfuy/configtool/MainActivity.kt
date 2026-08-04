@@ -24,7 +24,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
@@ -486,7 +488,11 @@ class MainActivity : ComponentActivity()
                         
                             } else {
                         
-                                firmwareManager.listFirmwareFiles()
+                                lifecycleScope.launch {
+                        
+                                    firmwareManager.refresh()
+                        
+                                }
                         
                             }
                         
