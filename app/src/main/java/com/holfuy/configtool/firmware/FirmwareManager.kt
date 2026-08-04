@@ -53,13 +53,11 @@ class FirmwareManager(
     {
         manifest.firmwares.forEach { descriptor ->
     
-            firmwareRepository.createOrReplace(
-                descriptor.filename
-            )
+            download(descriptor)
     
             Log.i(
                 TAG,
-                "Created ${descriptor.filename}"
+                "Downloaded ${descriptor.filename}"
             )
         }
     }
@@ -68,7 +66,36 @@ class FirmwareManager(
         descriptor: FirmwareDescriptor
     )
     {
-        TODO()
+        val request =
+            Request.Builder()
+                .url(descriptor.path)
+                .build()
+    
+        client.newCall(request)
+            .execute()
+            .use { response ->
+    
+                check(response.isSuccessful) {
+                    "HTTP ${response.code}"
+                }
+    
+                val file =
+                    firmwareRepository.createOrReplace(
+                        descriptor.filename
+                    )
+    
+                context.contentResolver
+                    .openOutputStream(file.uri)
+                    .use { output ->
+    
+                        check(output != null) {
+                            "Unable to open '${descriptor.filename}'."
+                        }
+    
+                        response.body!!.byteStream()
+                            .copyTo(output)
+                    }
+            }
     }
     
     suspend fun refresh()
