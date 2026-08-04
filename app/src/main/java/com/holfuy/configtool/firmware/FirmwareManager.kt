@@ -1,9 +1,7 @@
 package com.holfuy.configtool.firmware
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
-import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -49,6 +47,30 @@ class FirmwareManager(
         )
     }
     
+    private suspend fun synchronizeRepository(
+        manifest: FirmwareManifest
+    )
+    {
+        manifest.firmwares.forEach { descriptor ->
+    
+            firmwareRepository.createOrReplace(
+                descriptor.filename
+            )
+    
+            Log.i(
+                TAG,
+                "Created ${descriptor.filename}"
+            )
+        }
+    }
+    
+    private suspend fun download(
+        descriptor: FirmwareDescriptor
+    )
+    {
+        TODO()
+    }
+    
     suspend fun refresh()
     {
         withContext(Dispatchers.IO) {
@@ -56,20 +78,9 @@ class FirmwareManager(
             try {
     
                 val manifest = loadManifest()
-    
-                Log.i(
-                    TAG,
-                    "Found ${manifest.firmwares.size} firmware file(s)."
-                )
-    
-                manifest.firmwares.forEach {
-    
-                    Log.i(
-                        TAG,
-                        "${it.modem} -> ${it.filename}"
-                    )
-                }
-    
+
+                synchronizeRepository(manifest)
+      
             } catch (e: Exception) {
     
                 Log.w(
@@ -80,74 +91,4 @@ class FirmwareManager(
             }
         }
     }
-
-    fun listFirmwareFiles()
-    {
-        val manifest = loadManifest()
-    
-        Log.i(
-            TAG,
-            "Manifest contains ${manifest.firmwares.size} firmware files."
-        )
-    
-        manifest.firmwares.forEach {
-    
-            Log.i(
-                TAG,
-                "${it.modem} -> ${it.filename}"
-            )
-        }
-    }
-        
-/*
-    fun listFirmwareFiles()
-    {
-   
-        val folderUri: Uri =
-            firmwareRepository.folderUri
-                ?: run {
-
-                    Log.i(
-                        TAG,
-                        "Firmware repository not configured."
-                    )
-
-                    return
-                }
-
-        val folder =
-            DocumentFile.fromTreeUri(
-                context,
-                folderUri
-            )
-
-        if (folder == null) {
-
-            Log.w(
-                TAG,
-                "Unable to open firmware repository."
-            )
-
-            return
-        }
-
-        Log.i(
-            TAG,
-            "Firmware repository:"
-        )
-
-        folder.listFiles()
-            .sortedBy {
-                it.name ?: ""
-            }
-            .forEach { file ->
-
-                Log.i(
-                    TAG,
-                    "${file.name}  ${file.length()} bytes"
-                )
-            }
-
-    }
-*/
 }

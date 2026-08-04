@@ -2,13 +2,16 @@ package com.holfuy.configtool.firmware
 
 import android.content.Context
 import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 
 class FirmwareRepository(
     private val context: Context
-) {
-    companion object {
+)
+{
+    companion object
+    {
         private const val PREFS_NAME = "firmware_repository"
-        private const val KEY_FOLDER_URI = "folder_uri"
+        private const val KEY_ROOT_URI = "root_uri"
     }
 
     private val prefs =
@@ -17,22 +20,76 @@ class FirmwareRepository(
             Context.MODE_PRIVATE
         )
 
-    var folderUri: Uri?
-        get() =
+    val isConfigured: Boolean
+        get() = getRoot() != null
+
+    fun configure(
+        rootUri: Uri
+    )
+    {
+        prefs.edit()
+            .putString(
+                KEY_ROOT_URI,
+                rootUri.toString()
+            )
+            .apply()
+    }
+
+    fun getRoot(): DocumentFile?
+    {
+        val rootUri =
             prefs.getString(
-                KEY_FOLDER_URI,
+                KEY_ROOT_URI,
                 null
             )?.let(Uri::parse)
+                ?: return null
 
-        set(value) {
-            prefs.edit()
-                .putString(
-                    KEY_FOLDER_URI,
-                    value?.toString()
+        return DocumentFile.fromTreeUri(
+            context,
+            rootUri
+        )
+    }
+
+    fun listFiles(): List<DocumentFile>
+    {
+        return getRoot()
+            ?.listFiles()
+            ?.filter {
+                it.isFile
+            }
+            ?.toList()
+            ?: emptyList()
+    }
+
+    fun find(
+        filename: String
+    ): DocumentFile?
+    {
+        return listFiles()
+            .firstOrNull {
+                it.name == filename
+            }
+    }
+    
+    fun createOrReplace(
+        filename: String
+    ): DocumentFile
+    {
+        val root =
+            getRoot()
+                ?: error(
+                    "Firmware repository is not configured."
                 )
-                .apply()
-        }
-
-    val isConfigured: Boolean
-        get() = folderUri != null
+    
+        find(filename)
+            ?.delete()
+    
+        return root.createFile(
+            "application/octet-stream",
+            filename
+        )
+            ?: error(
+                "Unable to create '$filename'."
+            )
+    }
 }

@@ -405,7 +405,7 @@ class MainActivity : ComponentActivity()
                             Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                         )
                 
-                        firmwareRepository.folderUri = uri
+                        firmwareRepository.configure(uri)
                 
                         Log.i(
                             TAG,
