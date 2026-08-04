@@ -40,9 +40,12 @@ class FirmwareManager(
             }
     }
     
-    private fun parseManifest(
-        text: String
-    ): FirmwareManifest = json.decodeFromString(text)
+    private fun loadManifest(): FirmwareManifest
+    {
+        return json.decodeFromString(
+            downloadManifest()
+        )
+    }
         
     fun listFirmwareFiles()
     {
