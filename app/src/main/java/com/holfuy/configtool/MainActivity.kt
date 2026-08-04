@@ -57,6 +57,8 @@ class MainActivity : ComponentActivity()
     private lateinit var usbManager: UsbManager
     private lateinit var holfuyDevice: HolfuyDevice
     private lateinit var usbDeviceProvider: UsbDeviceProvider
+    private lateinit var firmwareRepository: FirmwareRepository
+    private lateinit var firmwareManager: FirmwareManager
     
     private fun getDisplayName(
         contentResolver: ContentResolver,
@@ -352,6 +354,13 @@ class MainActivity : ComponentActivity()
                 usbManager,
                 usbDeviceProvider
             )
+        
+        firmwareRepository = FirmwareRepository(this)
+
+        firmwareManager = FirmwareManager(
+            this,
+            firmwareRepository
+        )
                
         registerReceivers()
 
@@ -379,18 +388,7 @@ class MainActivity : ComponentActivity()
                     factory = factory
                 )
                 activityViewModel = viewModel
-                
-                val firmwareRepository = remember {
-                    FirmwareRepository(this)
-                }
-
-                val firmwareManager = remember {
-                    FirmwareManager(
-                        this,
-                        firmwareRepository
-                    )
-                }
-                
+                             
                 val firmwareFolderPicker =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.OpenDocumentTree()
@@ -526,6 +524,12 @@ class MainActivity : ComponentActivity()
             TAG,
             "onResume attached=${DeviceRepository.stateFlow.value.attached} permissionGranted=${DeviceRepository.stateFlow.value.permissionGranted}"
         )
+        
+        lifecycleScope.launch {
+        
+            firmwareManager.refresh()
+        
+        }
     }
     
     override fun onConfigurationChanged(
