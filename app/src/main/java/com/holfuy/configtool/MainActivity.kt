@@ -28,6 +28,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
+import com.holfuy.configtool.firmware.FirmwareLibrary
+import com.holfuy.configtool.firmware.FirmwareManager
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
 import com.holfuy.configtool.ui.theme.HolfuyConfigToolTheme
@@ -376,6 +378,39 @@ class MainActivity : ComponentActivity()
                 )
                 activityViewModel = viewModel
                 
+                val firmwareLibrary = remember {
+                    FirmwareLibrary(this)
+                }
+
+                val firmwareManager = remember {
+                    FirmwareManager(
+                        this,
+                        firmwareLibrary
+                    )
+                }
+                
+                val firmwareFolderPicker =
+                    rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.OpenDocumentTree()
+                    ) { uri: Uri? ->
+                
+                        if (uri == null)
+                            return@rememberLauncherForActivityResult
+                
+                        contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        )
+                
+                        firmwareLibrary.folderUri = uri
+                
+                        Log.i(
+                            TAG,
+                            "Firmware folder selected: $uri"
+                        )
+                    }
+                
                 val firmwarePicker =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()
@@ -427,22 +462,34 @@ class MainActivity : ComponentActivity()
                     MainScreen(
                         uiState = viewModel.uiState,
                         deviceState = deviceState,
-                
+                        
                         onConnectClick =
                             ::connectOrRequestPermission,
-                
-                        onSelectFirmwareClick = {
-                        
+                            
+                        onSelectFirmwareClick = {                        
                             activityViewModel.clearTransientStatus()                
-                            firmwarePicker.launch("*/*")
-                
+                            firmwarePicker.launch("*/*")                
                         },
-                
+                                            
                         onUpdateFirmwareClick =
                             viewModel::updateFirmware,
-                
+                            
                         onHelpClick = {
                             showHelp = true
+                        },
+                            
+                        onChooseFirmwareFolderClick = {
+                        
+                            if (!firmwareLibrary.isConfigured) {
+                        
+                                firmwareFolderPicker.launch(null)
+                        
+                            } else {
+                        
+                                firmwareManager.listFirmwareFiles()
+                        
+                            }
+                        
                         }
                     )
                 }

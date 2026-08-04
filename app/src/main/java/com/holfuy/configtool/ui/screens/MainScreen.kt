@@ -32,7 +32,8 @@ fun MainScreen(
     onConnectClick: () -> Unit,
     onSelectFirmwareClick: () -> Unit,
     onUpdateFirmwareClick: () -> Unit,
-    onHelpClick: () -> Unit
+    onHelpClick: () -> Unit,
+    onChooseFirmwareFolderClick: () -> Unit
 )
 {
     Column(
@@ -58,6 +59,14 @@ fun MainScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+        
+        Button(
+            onClick = onChooseFirmwareFolderClick
+        ) {
+            Text("Configure Firmware Library")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))        
 
         Button(
             enabled = !deviceState.updateInProgress,
