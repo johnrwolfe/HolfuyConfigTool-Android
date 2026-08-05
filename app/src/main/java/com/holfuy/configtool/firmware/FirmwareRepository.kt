@@ -105,4 +105,35 @@ class FirmwareRepository(
                 "Unable to create '$filename'."
             )
     }
+    
+    fun promote(
+        tempFilename: String,
+        filename: String
+    )
+    {
+        val temp =
+            find(tempFilename)
+                ?: error(
+                    "'$tempFilename' does not exist."
+                )
+    
+        find(filename)
+            ?.delete()
+    
+        val renamedUri =
+            DocumentsContract.renameDocument(
+                context.contentResolver,
+                temp.uri,
+                filename
+            )
+                ?: error(
+                    "Unable to rename '$tempFilename'."
+                )
+    
+        check(
+            renamedUri == temp.uri || find(filename) != null
+        ) {
+            "Unable to promote '$filename'."
+        }
+    }
 }

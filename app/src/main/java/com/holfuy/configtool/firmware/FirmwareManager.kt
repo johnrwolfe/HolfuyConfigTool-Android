@@ -56,6 +56,8 @@ class FirmwareManager(
         manifest.firmwares.forEach { descriptor ->
     
             download(descriptor)
+            
+            firmwareRepository.promote("${descriptor.filename}.part", descriptor.filename)
     
             val file =
                 firmwareRepository.find(
