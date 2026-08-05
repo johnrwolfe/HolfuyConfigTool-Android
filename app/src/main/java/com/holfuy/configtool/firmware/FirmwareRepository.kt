@@ -136,4 +136,12 @@ class FirmwareRepository(
             "Unable to promote '$filename'."
         }
     }
+    
+    fun deleteIfPresent(
+        filename: String
+    )
+    {
+        find(filename)
+            ?.delete()
+    }
 }

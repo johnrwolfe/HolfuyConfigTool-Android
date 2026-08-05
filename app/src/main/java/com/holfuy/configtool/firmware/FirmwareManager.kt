@@ -21,6 +21,7 @@ class FirmwareManager(
 {
     companion object {
         private const val TAG = "HolfuyUSB-FW"
+        private const val MAX_DOWNLOAD_ATTEMPTS = 5
     }
 
     private fun downloadManifest(): String
@@ -49,15 +50,60 @@ class FirmwareManager(
         )
     }
     
+    private suspend fun downloadWithRetry(
+        descriptor: FirmwareDescriptor
+    )
+    {
+        var lastException: Exception? = null        
+        val tempFilename = "${descriptor.filename}.part"
+    
+        repeat(MAX_DOWNLOAD_ATTEMPTS) { attempt ->
+    
+            try {
+    
+                download(descriptor)
+    
+                if (attempt > 0) {
+    
+                    Log.i(
+                        TAG,
+                        "Succeeded downloading ${descriptor.filename} on attempt ${attempt + 1}."
+                    )
+                }
+    
+                return
+    
+            } catch (e: Exception) {
+    
+                lastException = e
+                firmwareRepository.deleteIfPresent(tempFilename)
+    
+                Log.w(
+                    TAG,
+                    "Attempt ${attempt + 1} of $MAX_DOWNLOAD_ATTEMPTS failed for ${descriptor.filename}.",
+                    e
+                )
+            }
+        }
+    
+        throw checkNotNull(lastException)
+    }
+    
     private suspend fun synchronizeRepository(
         manifest: FirmwareManifest
     )
     {
         manifest.firmwares.forEach { descriptor ->
     
-            download(descriptor)
+            val tempFilename =
+                "${descriptor.filename}.part"
             
-            firmwareRepository.promote("${descriptor.filename}.part", descriptor.filename)
+            downloadWithRetry(descriptor)
+            
+            firmwareRepository.promote(
+                tempFilename,
+                descriptor.filename
+            )
     
             val file =
                 firmwareRepository.find(
