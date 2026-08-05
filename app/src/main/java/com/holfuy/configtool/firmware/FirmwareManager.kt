@@ -10,6 +10,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import com.holfuy.configtool.firmware.RefreshResult
 
 private val json = Json {ignoreUnknownKeys = true}
 private val client = OkHttpClient()
@@ -224,22 +225,34 @@ class FirmwareManager(
             }
     }
     
-    suspend fun refresh()
+    suspend fun refresh(): RefreshResult
     {
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
+    
+            val manifest = loadManifest()
     
             try {
     
-                val manifest = loadManifest()
-
                 synchronizeRepository(manifest)
-      
+    
+                RefreshResult(
+                    updated = manifest.firmwares.map { it.filename },
+                    stale = emptyList(),
+                    unavailable = emptyList()
+                )
+    
             } catch (e: Exception) {
     
                 Log.w(
                     TAG,
                     "Unable to refresh firmware library.",
                     e
+                )
+    
+                RefreshResult(
+                    updated = emptyList(),
+                    stale = emptyList(),
+                    unavailable = manifest.firmwares.map { it.filename }
                 )
             }
         }
