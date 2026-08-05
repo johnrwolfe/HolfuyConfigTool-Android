@@ -118,10 +118,13 @@ class FirmwareManager(
                 firmwareRepository.find(
                     descriptor.filename
                 )
+                    ?: error(
+                        "'${descriptor.filename}' not found after promotion."
+                    )
             
             Log.i(
                 TAG,
-                "Downloaded ${descriptor.filename} (${file?.length()} bytes)"
+                "Updated ${descriptor.filename} (${file.length()} bytes)"
             )
         }
     }
@@ -200,25 +203,11 @@ class FirmwareManager(
                             "Unable to open '${descriptor.filename}'."
                         }
     
-                        Log.i(
-                            TAG,
-                            "Copying ${descriptor.filename}"
-                        )
-    
                         response.body!!
                             .byteStream()
                             .copyTo(output)
     
-                        Log.i(
-                            TAG,
-                            "Finished copying ${descriptor.filename}"
-                        )
                     }
-    
-                Log.i(
-                    TAG,
-                    "Closed output ${descriptor.filename}"
-                )
                 
                 val checksum = sha256(file)
                 
@@ -233,11 +222,6 @@ class FirmwareManager(
                     "Verified ${descriptor.filename}"
                 )
             }
-    
-        Log.i(
-            TAG,
-            "Finished download ${descriptor.filename}"
-        )
     }
     
     suspend fun refresh()
