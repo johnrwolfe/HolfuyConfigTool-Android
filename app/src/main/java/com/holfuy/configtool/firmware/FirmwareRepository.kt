@@ -2,7 +2,9 @@ package com.holfuy.configtool.firmware
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
+
 
 class FirmwareRepository(
     private val context: Context
@@ -22,6 +24,17 @@ class FirmwareRepository(
 
     val isConfigured: Boolean
         get() = getRoot() != null
+        
+    fun getDisplayName(): String?
+    {
+        val root = getRoot()
+            ?: return null
+    
+        val treeId =
+            DocumentsContract.getTreeDocumentId(root.uri)
+    
+        return treeId.substringAfter(':')
+    }
 
     fun configure(
         rootUri: Uri

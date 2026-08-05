@@ -20,6 +20,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity()
     private lateinit var usbDeviceProvider: UsbDeviceProvider
     private lateinit var firmwareRepository: FirmwareRepository
     private lateinit var firmwareManager: FirmwareManager
+    private var showFirmwareRepositoryPicker by mutableStateOf(false)
     
     private fun getDisplayName(
         contentResolver: ContentResolver,
@@ -411,6 +413,16 @@ class MainActivity : ComponentActivity()
                         )
                     }
                 
+                LaunchedEffect(showFirmwareRepositoryPicker) {
+                
+                    if (showFirmwareRepositoryPicker) {
+                
+                        showFirmwareRepositoryPicker = false
+                
+                        firmwareFolderPicker.launch(null)
+                    }
+                }
+                
                 val firmwarePicker =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()
@@ -476,24 +488,6 @@ class MainActivity : ComponentActivity()
                             
                         onHelpClick = {
                             showHelp = true
-                        },
-                            
-                        onChooseFirmwareFolderClick = {
-                        
-                            if (!firmwareRepository.isConfigured) {
-                        
-                                firmwareFolderPicker.launch(null)
-                        
-                            } else {
-                        
-                                lifecycleScope.launch {
-                        
-                                    firmwareManager.refresh()
-                        
-                                }
-                        
-                            }
-                        
                         }
                     )
                 }
@@ -525,10 +519,20 @@ class MainActivity : ComponentActivity()
             "onResume attached=${DeviceRepository.stateFlow.value.attached} permissionGranted=${DeviceRepository.stateFlow.value.permissionGranted}"
         )
         
-        lifecycleScope.launch {
+        if (!firmwareRepository.isConfigured) {
+       
+            showFirmwareRepositoryPicker = true
         
-            firmwareManager.refresh()
+        } else {
         
+            Log.i(
+                TAG,
+                "Firmware repository: ${firmwareRepository.getDisplayName()}"
+            )
+            
+            lifecycleScope.launch {
+                firmwareManager.refresh()
+            }
         }
     }
     

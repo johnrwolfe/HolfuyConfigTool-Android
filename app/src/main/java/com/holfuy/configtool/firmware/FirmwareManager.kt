@@ -55,9 +55,14 @@ class FirmwareManager(
     
             download(descriptor)
     
+            val file =
+                firmwareRepository.find(
+                    descriptor.filename
+                )
+            
             Log.i(
                 TAG,
-                "Downloaded ${descriptor.filename}"
+                "Downloaded ${descriptor.filename} (${file?.length()} bytes)"
             )
         }
     }

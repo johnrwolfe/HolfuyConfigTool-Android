@@ -32,8 +32,7 @@ fun MainScreen(
     onConnectClick: () -> Unit,
     onSelectFirmwareClick: () -> Unit,
     onUpdateFirmwareClick: () -> Unit,
-    onHelpClick: () -> Unit,
-    onChooseFirmwareFolderClick: () -> Unit
+    onHelpClick: () -> Unit
 )
 {
     Column(
@@ -56,14 +55,6 @@ fun MainScreen(
             onClick = onHelpClick
         ) {
             Text("Help")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Button(
-            onClick = onChooseFirmwareFolderClick
-        ) {
-            Text("Configure Firmware Library")
         }
 
         Spacer(modifier = Modifier.height(16.dp))        
