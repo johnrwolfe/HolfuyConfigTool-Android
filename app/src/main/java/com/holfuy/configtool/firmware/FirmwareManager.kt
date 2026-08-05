@@ -101,8 +101,13 @@ class FirmwareManager(
     
     private suspend fun synchronizeRepository(
         manifest: FirmwareManifest
-    )
+    ): RefreshResult
     {
+    
+        val updated = mutableListOf<String>()
+        val stale = mutableListOf<String>()
+        val unavailable = mutableListOf<String>()
+        
         manifest.firmwares.forEach { descriptor ->
     
             val tempFilename =
@@ -128,6 +133,11 @@ class FirmwareManager(
                 "Updated ${descriptor.filename} (${file.length()} bytes)"
             )
         }
+        return RefreshResult(
+            updated = updated,
+            stale = stale,
+            unavailable = unavailable
+        )
     }
 
     private fun sha256(
