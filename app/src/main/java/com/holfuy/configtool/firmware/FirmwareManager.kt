@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import java.security.MessageDigest
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -60,7 +61,11 @@ class FirmwareManager(
         repeat(MAX_DOWNLOAD_ATTEMPTS) { attempt ->
     
             try {
-    
+                Log.i(
+                    TAG,
+                    "Downloading ${descriptor.filename} (attempt ${attempt + 1})"
+                )
+                
                 download(descriptor)
     
                 if (attempt > 0) {
@@ -83,6 +88,10 @@ class FirmwareManager(
                     "Attempt ${attempt + 1} of $MAX_DOWNLOAD_ATTEMPTS failed for ${descriptor.filename}.",
                     e
                 )
+                
+                if ((attempt + 1) < MAX_DOWNLOAD_ATTEMPTS) {                
+                    delay(1000)
+                }
             }
         }
     
