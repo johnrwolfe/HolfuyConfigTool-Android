@@ -109,29 +109,44 @@ class FirmwareManager(
         val unavailable = mutableListOf<String>()
         
         manifest.firmwares.forEach { descriptor ->
-    
-            val tempFilename =
-                "${descriptor.filename}.part"
-            
-            downloadWithRetry(descriptor)
-            
-            firmwareRepository.promote(
-                tempFilename,
-                descriptor.filename
-            )
-    
-            val file =
-                firmwareRepository.find(
+        
+            try {
+        
+                downloadWithRetry(descriptor)
+        
+                firmwareRepository.promote(
+                    "${descriptor.filename}.part",
                     descriptor.filename
                 )
-                    ?: error(
-                        "'${descriptor.filename}' not found after promotion."
+        
+                val file =
+                    firmwareRepository.find(
+                        descriptor.filename
                     )
-            
-            Log.i(
-                TAG,
-                "Updated ${descriptor.filename} (${file.length()} bytes)"
-            )
+                        ?: error(
+                            "'${descriptor.filename}' not found after promotion."
+                        )
+        
+                Log.i(
+                    TAG,
+                    "Updated ${descriptor.filename} (${file.length()} bytes)"
+                )
+        
+                updated += descriptor.filename
+        
+            } catch (e: Exception) {
+        
+                if (
+                    firmwareRepository.find(descriptor.filename) != null
+                ) {
+        
+                    stale += descriptor.filename
+        
+                } else {
+        
+                    unavailable += descriptor.filename
+                }
+            }
         }
         return RefreshResult(
             updated = updated,
@@ -243,13 +258,17 @@ class FirmwareManager(
     
             try {
     
-                synchronizeRepository(manifest)
-    
-                RefreshResult(
-                    updated = manifest.firmwares.map { it.filename },
-                    stale = emptyList(),
-                    unavailable = emptyList()
+                val result =
+                    synchronizeRepository(manifest)
+                
+                Log.i(
+                    TAG,
+                    "Refresh: updated=${result.updated}, " +
+                    "stale=${result.stale}, " +
+                    "unavailable=${result.unavailable}"
                 )
+                
+                result
     
             } catch (e: Exception) {
     
