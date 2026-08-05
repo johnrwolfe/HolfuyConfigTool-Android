@@ -10,7 +10,8 @@ data class FirmwareManifest(
 @Serializable
 data class FirmwareDescriptor(
     val path: String,
-    val modem: String
+    val modem: String,
+    val sha256: String
 )
 {
     val filename: String

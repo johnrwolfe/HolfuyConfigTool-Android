@@ -2,6 +2,8 @@ package com.holfuy.configtool.firmware
 
 import android.content.Context
 import android.util.Log
+import androidx.documentfile.provider.DocumentFile
+import java.security.MessageDigest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -66,7 +68,48 @@ class FirmwareManager(
             )
         }
     }
+
+    private fun sha256(
+        file: DocumentFile
+    ): String
+    {
+        val digest =
+            MessageDigest.getInstance(
+                "SHA-256"
+            )
     
+        context.contentResolver
+            .openInputStream(file.uri)
+            .use { input ->
+    
+                check(input != null) {
+                    "Unable to open '${file.name}'."
+                }
+    
+                val buffer =
+                    ByteArray(8192)
+    
+                while (true) {
+    
+                    val count =
+                        input.read(buffer)
+    
+                    if (count < 0)
+                        break
+    
+                    digest.update(
+                        buffer,
+                        0,
+                        count
+                    )
+                }
+            }
+    
+        return digest.digest()
+            .joinToString("") {
+                "%02x".format(it)
+            }
+    }
     private suspend fun download(
         descriptor: FirmwareDescriptor
     )
@@ -75,6 +118,9 @@ class FirmwareManager(
             Request.Builder()
                 .url(descriptor.path)
                 .build()
+                
+        val tempFilename =
+            "${descriptor.filename}.part"
     
         client.newCall(request)
             .execute()
@@ -86,7 +132,7 @@ class FirmwareManager(
     
                 val file =
                     firmwareRepository.createOrReplace(
-                        descriptor.filename
+                        tempFilename
                     )
     
                 context.contentResolver
@@ -97,10 +143,44 @@ class FirmwareManager(
                             "Unable to open '${descriptor.filename}'."
                         }
     
-                        response.body!!.byteStream()
+                        Log.i(
+                            TAG,
+                            "Copying ${descriptor.filename}"
+                        )
+    
+                        response.body!!
+                            .byteStream()
                             .copyTo(output)
+    
+                        Log.i(
+                            TAG,
+                            "Finished copying ${descriptor.filename}"
+                        )
                     }
+    
+                Log.i(
+                    TAG,
+                    "Closed output ${descriptor.filename}"
+                )
+                
+                val checksum = sha256(file)
+                
+                check(
+                    checksum == descriptor.sha256
+                ) {
+                    "SHA-256 verification failed for '${descriptor.filename}'."
+                }
+                
+                Log.i(
+                    TAG,
+                    "Verified ${descriptor.filename}"
+                )
             }
+    
+        Log.i(
+            TAG,
+            "Finished download ${descriptor.filename}"
+        )
     }
     
     suspend fun refresh()
