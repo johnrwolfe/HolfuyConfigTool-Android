@@ -33,7 +33,8 @@ fun MainScreen(
     onSelectFirmwareClick: () -> Unit,
     onUpdateFirmwareClick: () -> Unit,
     onHelpClick: () -> Unit,
-    repositoryDisplayName: String?
+    repositoryDisplayName: String?,
+    onRefreshRepositoryClick: () -> Unit
 )
 {
     Column(
@@ -74,26 +75,32 @@ fun MainScreen(
                 )
         
                 Spacer(modifier = Modifier.height(8.dp))
-        
-                uiState.refreshResult?.let { result ->
-        
+                
+                val refreshResult = uiState.refreshResult
+                
+                Text(
                     when {
-        
-                        result.unavailable.isNotEmpty() -> {
-        
-                            Text("Some firmware unavailable")
-                        }
-        
-                        result.stale.isNotEmpty() -> {
-        
-                            Text("Using existing firmware for some devices")
-                        }
-        
-                        else -> {
-        
-                            Text("Firmware library is current")
-                        }
+                        refreshResult == null ->
+                            "Refreshing..."
+                
+                        refreshResult.unavailable.isNotEmpty() ->
+                            "Some firmware unavailable"
+                
+                        refreshResult.stale.isNotEmpty() ->
+                            "Using existing firmware for some devices"
+                
+                        else ->
+                            "Firmware library is current"
                     }
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Button(
+                    enabled = uiState.refreshResult == null,
+                    onClick = onRefreshRepositoryClick
+                ) {
+                    Text("Check for Updates")
                 }
             }
         }

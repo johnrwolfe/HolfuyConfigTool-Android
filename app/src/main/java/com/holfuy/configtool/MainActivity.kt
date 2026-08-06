@@ -501,7 +501,15 @@ class MainActivity : ComponentActivity()
                             showHelp = true
                         },
                         
-                        repositoryDisplayName = firmwareRepository.getDisplayName()
+                        repositoryDisplayName = firmwareRepository.getDisplayName(),
+                        
+                        onRefreshRepositoryClick = {
+                            lifecycleScope.launch {
+                                viewModel.setRefreshResult(
+                                    firmwareManager.refresh()
+                                )
+                            }
+                        }
                     )
                 }
             }
