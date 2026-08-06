@@ -424,6 +424,16 @@ class MainActivity : ComponentActivity()
                     }
                 }
                 
+                LaunchedEffect(firmwareRepository.isConfigured) {
+                
+                    if (firmwareRepository.isConfigured) {
+                
+                        viewModel.setRefreshResult(
+                            firmwareManager.refresh()
+                        )
+                    }
+                }
+                
                 val firmwarePicker =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()
