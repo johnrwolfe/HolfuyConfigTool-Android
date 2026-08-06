@@ -97,7 +97,7 @@ fun MainScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Button(
-                    enabled = uiState.refreshResult == null,
+                    enabled = true,
                     onClick = onRefreshRepositoryClick
                 ) {
                     Text("Check for Updates")
