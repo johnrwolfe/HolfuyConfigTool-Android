@@ -33,6 +33,7 @@ import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
 import com.holfuy.configtool.firmware.FirmwareManager
 import com.holfuy.configtool.firmware.FirmwareRepository
+import com.holfuy.configtool.firmware.RefreshResult
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
 import com.holfuy.configtool.ui.theme.HolfuyConfigToolTheme
@@ -488,7 +489,9 @@ class MainActivity : ComponentActivity()
                             
                         onHelpClick = {
                             showHelp = true
-                        }
+                        },
+                        
+                        repositoryDisplayName = firmwareRepository.getDisplayName()
                     )
                 }
             }
@@ -518,21 +521,17 @@ class MainActivity : ComponentActivity()
             TAG,
             "onResume attached=${DeviceRepository.stateFlow.value.attached} permissionGranted=${DeviceRepository.stateFlow.value.permissionGranted}"
         )
-        
+    
         if (!firmwareRepository.isConfigured) {
-       
+    
             showFirmwareRepositoryPicker = true
-        
+    
         } else {
-        
+    
             Log.i(
                 TAG,
                 "Firmware repository: ${firmwareRepository.getDisplayName()}"
             )
-            
-            lifecycleScope.launch {
-                firmwareManager.refresh()
-            }
         }
     }
     

@@ -32,7 +32,8 @@ fun MainScreen(
     onConnectClick: () -> Unit,
     onSelectFirmwareClick: () -> Unit,
     onUpdateFirmwareClick: () -> Unit,
-    onHelpClick: () -> Unit
+    onHelpClick: () -> Unit,
+    repositoryDisplayName: String?
 )
 {
     Column(
@@ -57,7 +58,24 @@ fun MainScreen(
             Text("Help")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))        
+        Spacer(modifier = Modifier.height(16.dp)) 
+
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Firmware Repository")
+        
+                Text(
+                    repositoryDisplayName
+                        ?: "Not configured"
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(SECTION_SPACING))       
 
         Button(
             enabled = !deviceState.updateInProgress,

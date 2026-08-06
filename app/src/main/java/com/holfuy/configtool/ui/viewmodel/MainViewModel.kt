@@ -6,11 +6,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.holfuy.configtool.device.DeviceRepository
-import com.holfuy.configtool.device.HolfuyDevice
-import com.holfuy.configtool.ui.state.MainUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.holfuy.configtool.device.DeviceRepository
+import com.holfuy.configtool.device.HolfuyDevice
+import com.holfuy.configtool.firmware.RefreshResult
+import com.holfuy.configtool.ui.state.MainUiState
 
 class MainViewModel(
     private val holfuyDevice: HolfuyDevice,
@@ -25,6 +26,15 @@ class MainViewModel(
         
     private var firmwareBytes: ByteArray? = null
     val deviceStateFlow = DeviceRepository.stateFlow
+    
+    fun setRefreshResult(
+        result: RefreshResult
+    )
+    {
+        uiState = uiState.copy(
+            refreshResult = result
+        )
+    }
     
     fun setFirmware(
         fileName: String,
