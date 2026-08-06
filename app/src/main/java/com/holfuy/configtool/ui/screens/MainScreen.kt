@@ -72,9 +72,31 @@ fun MainScreen(
                     repositoryDisplayName
                         ?: "Not configured"
                 )
+        
+                Spacer(modifier = Modifier.height(8.dp))
+        
+                uiState.refreshResult?.let { result ->
+        
+                    when {
+        
+                        result.unavailable.isNotEmpty() -> {
+        
+                            Text("Some firmware unavailable")
+                        }
+        
+                        result.stale.isNotEmpty() -> {
+        
+                            Text("Using existing firmware for some devices")
+                        }
+        
+                        else -> {
+        
+                            Text("Firmware library is current")
+                        }
+                    }
+                }
             }
         }
-        
         Spacer(modifier = Modifier.height(SECTION_SPACING))       
 
         Button(
