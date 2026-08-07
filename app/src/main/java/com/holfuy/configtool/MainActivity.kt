@@ -522,6 +522,9 @@ class MainActivity : ComponentActivity()
                         
                         onRefreshRepositoryClick = {
                             lifecycleScope.launch {
+                        
+                                viewModel.setRefreshResult(null)
+                        
                                 viewModel.setRefreshResult(
                                     firmwareManager.refresh()
                                 )
