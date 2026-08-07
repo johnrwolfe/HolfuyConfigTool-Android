@@ -27,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -395,19 +396,21 @@ class MainActivity : ComponentActivity()
         
         refreshUsbState()
 
+        val factory =
+            MainViewModelFactory(
+                holfuyDevice
+            )
+        
+        activityViewModel =
+            ViewModelProvider(
+                this,
+                factory
+            )[MainViewModel::class.java]
+
         setContent {
             HolfuyConfigToolTheme {
                 
-                val factory = remember {
-                    MainViewModelFactory(
-                        holfuyDevice
-                    )
-                }
-
-                val viewModel: MainViewModel = viewModel(
-                    factory = factory
-                )
-                activityViewModel = viewModel
+                val viewModel = activityViewModel
                              
                 val firmwareFolderPicker =
                     rememberLauncherForActivityResult(
