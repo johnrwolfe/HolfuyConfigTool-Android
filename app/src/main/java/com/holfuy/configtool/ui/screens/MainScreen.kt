@@ -34,7 +34,8 @@ fun MainScreen(
     onUpdateFirmwareClick: () -> Unit,
     onHelpClick: () -> Unit,
     repositoryDisplayName: String?,
-    onRefreshRepositoryClick: () -> Unit
+    onRefreshRepositoryClick: () -> Unit,
+    lastVerifiedText: String?
 )
 {
     Column(
@@ -93,6 +94,16 @@ fun MainScreen(
                             "Firmware library is current"
                     }
                 )
+                
+                lastVerifiedText?.let {
+                
+                    Spacer(modifier = Modifier.height(4.dp))
+                
+                    Text(
+                        "Last verified: $it",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 

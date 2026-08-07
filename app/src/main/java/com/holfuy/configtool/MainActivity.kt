@@ -27,6 +27,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import kotlinx.coroutines.launch
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
@@ -85,6 +89,19 @@ class MainActivity : ComponentActivity()
         }
     
         return "firmware.bin"
+    }
+    
+    private fun formatInstant(
+        instant: Instant
+    ): String
+    {
+        return DateTimeFormatter
+            .ofLocalizedDateTime(
+                FormatStyle.MEDIUM,
+                FormatStyle.SHORT
+            )
+            .withZone(ZoneId.systemDefault())
+            .format(instant)
     }
     
     private fun registerReceivers()
@@ -509,7 +526,12 @@ class MainActivity : ComponentActivity()
                                     firmwareManager.refresh()
                                 )
                             }
-                        }
+                        },
+
+                        lastVerifiedText =
+                            viewModel.uiState.refreshResult
+                                ?.verifiedAt
+                                ?.let(::formatInstant)
                     )
                 }
             }

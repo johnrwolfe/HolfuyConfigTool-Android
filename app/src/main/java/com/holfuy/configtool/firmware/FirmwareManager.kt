@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import java.security.MessageDigest
+import java.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -151,7 +152,8 @@ class FirmwareManager(
         return RefreshResult(
             updated = updated,
             stale = stale,
-            unavailable = unavailable
+            unavailable = unavailable,
+            verifiedAt = Instant.now()
         )
     }
 
@@ -281,7 +283,8 @@ class FirmwareManager(
                 RefreshResult(
                     updated = emptyList(),
                     stale = emptyList(),
-                    unavailable = manifest.firmwares.map { it.filename }
+                    unavailable = manifest.firmwares.map { it.filename },
+                    verifiedAt = null
                 )
             }
         }
