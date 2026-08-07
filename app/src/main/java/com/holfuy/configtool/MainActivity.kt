@@ -444,16 +444,6 @@ class MainActivity : ComponentActivity()
                     }
                 }
                 
-                LaunchedEffect(firmwareRepository.isConfigured) {
-                
-                    if (firmwareRepository.isConfigured) {
-                
-                        viewModel.setRefreshResult(
-                            firmwareManager.refresh()
-                        )
-                    }
-                }
-                
                 val firmwarePicker =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()
@@ -578,6 +568,15 @@ class MainActivity : ComponentActivity()
                 TAG,
                 "Firmware repository: ${firmwareRepository.getDisplayName()}"
             )
+            
+            lifecycleScope.launch {
+            
+                activityViewModel.setRefreshResult(null)
+            
+                activityViewModel.setRefreshResult(
+                    firmwareManager.refresh()
+                )
+            }
         }
     }
     
