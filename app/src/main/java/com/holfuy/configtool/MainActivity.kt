@@ -36,8 +36,8 @@ import kotlinx.coroutines.launch
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
-import com.holfuy.configtool.firmware.FirmwareManager
 import com.holfuy.configtool.firmware.FirmwareRepository
+import com.holfuy.configtool.firmware.RepositoryStorage
 import com.holfuy.configtool.firmware.RefreshResult
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity()
     private lateinit var holfuyDevice: HolfuyDevice
     private lateinit var usbDeviceProvider: UsbDeviceProvider
     private lateinit var firmwareRepository: FirmwareRepository
-    private lateinit var firmwareManager: FirmwareManager
+    private lateinit var repositoryStorage: RepositoryStorage
     
     private fun getDisplayName(
         contentResolver: ContentResolver,
@@ -376,11 +376,9 @@ class MainActivity : ComponentActivity()
                 usbDeviceProvider
             )
         
-        firmwareRepository = FirmwareRepository(this)
-
-        firmwareManager = FirmwareManager(
-            firmwareRepository
-        )
+        repositoryStorage = RepositoryStorage(this)
+        
+        firmwareRepository = FirmwareRepository(repositoryStorage)
                
         registerReceivers()
 
@@ -511,7 +509,7 @@ class MainActivity : ComponentActivity()
                             showHelp = true
                         },
                         
-                        repositoryDisplayName = firmwareRepository.getDisplayName(),
+                        repositoryDisplayName = firmwareRepository.displayName,
                         
                         onRefreshRepositoryClick = {
                             lifecycleScope.launch {
@@ -519,7 +517,7 @@ class MainActivity : ComponentActivity()
                                 viewModel.setRefreshResult(null)
                         
                                 viewModel.setRefreshResult(
-                                    firmwareManager.refresh()
+                                    firmwareRepository.refresh()
                                 )
                             }
                         },
@@ -558,7 +556,7 @@ class MainActivity : ComponentActivity()
             "onResume attached=${DeviceRepository.stateFlow.value.attached} permissionGranted=${DeviceRepository.stateFlow.value.permissionGranted}"
         )
     
-        if (!firmwareRepository.isConfigured) {
+        if (!firmwareRepository.configured) {
     
             activityViewModel.beginRepositoryConfiguration()
     
@@ -566,7 +564,7 @@ class MainActivity : ComponentActivity()
     
             Log.i(
                 TAG,
-                "Firmware repository: ${firmwareRepository.getDisplayName()}"
+                "Firmware repository: ${firmwareRepository.displayName}"
             )
             
             lifecycleScope.launch {
@@ -574,7 +572,7 @@ class MainActivity : ComponentActivity()
                 activityViewModel.setRefreshResult(null)
             
                 activityViewModel.setRefreshResult(
-                    firmwareManager.refresh()
+                    firmwareRepository.refresh()
                 )
             }
         }

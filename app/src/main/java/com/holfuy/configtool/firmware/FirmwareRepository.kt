@@ -1,207 +1,262 @@
 package com.holfuy.configtool.firmware
 
-import android.content.Context
 import android.net.Uri
-import android.provider.DocumentsContract
+import android.util.Log
 import androidx.documentfile.provider.DocumentFile
-import java.io.InputStream
-import java.io.OutputStream
 import java.security.MessageDigest
+import java.time.Instant
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import com.holfuy.configtool.firmware.RepositoryStorage
+import com.holfuy.configtool.firmware.RefreshResult
 
+private val json = Json {ignoreUnknownKeys = true}
+private val client = OkHttpClient()
+private const val MANIFEST_URL = "https://holfuy.com/support/firmwares/mobile_upgrader_manifest.json"
 
 class FirmwareRepository(
-    private val context: Context
+    private val storage: RepositoryStorage
 )
 {
-    companion object
-    {
-        private const val PREFS_NAME = "firmware_repository"
-        private const val KEY_ROOT_URI = "root_uri"
+    companion object {
+        private const val TAG = "HolfuyUSB-FW"
+        private const val MAX_DOWNLOAD_ATTEMPTS = 5
     }
-
-    private val prefs =
-        context.getSharedPreferences(
-            PREFS_NAME,
-            Context.MODE_PRIVATE
-        )
-
-    val isConfigured: Boolean
-        get() = getRoot() != null
+    
+    val displayName: String?
+        get() = storage.displayName
         
-    fun getDisplayName(): String?
-    {
-        val root = getRoot()
-            ?: return null
+    val configured: Boolean
+        get() = storage.configured
     
-        val treeId =
-            DocumentsContract.getTreeDocumentId(root.uri)
-    
-        return treeId.substringAfter(':')
-    }
-
     fun configure(
         rootUri: Uri
     )
     {
-        prefs.edit()
-            .putString(
-                KEY_ROOT_URI,
-                rootUri.toString()
-            )
-            .apply()
-    }
-
-    fun getRoot(): DocumentFile?
-    {
-        val rootUri =
-            prefs.getString(
-                KEY_ROOT_URI,
-                null
-            )?.let(Uri::parse)
-                ?: return null
-
-        return DocumentFile.fromTreeUri(
-            context,
+        storage.setRepositoryRoot(
             rootUri
         )
     }
 
-    fun listFiles(): List<DocumentFile>
+    private fun downloadManifest(): String
     {
-        return getRoot()
-            ?.listFiles()
-            ?.filter {
-                it.isFile
+        val request =
+            Request.Builder()
+                .url(MANIFEST_URL)
+                .build()
+    
+        client.newCall(request)
+            .execute()
+            .use { response ->
+    
+                check(response.isSuccessful) {
+                    "HTTP ${response.code}"
+                }
+    
+                return response.body!!.string()
             }
-            ?.toList()
-            ?: emptyList()
+    }
+    
+    private fun loadManifest(): FirmwareManifest
+    {
+        return json.decodeFromString(
+            downloadManifest()
+        )
+    }
+    
+    private suspend fun downloadWithRetry(
+        descriptor: FirmwareDescriptor
+    )
+    {
+        var lastException: Exception? = null        
+        val tempFilename = "${descriptor.filename}.part"
+    
+        repeat(MAX_DOWNLOAD_ATTEMPTS) { attempt ->
+    
+            try {
+                Log.i(
+                    TAG,
+                    "Downloading ${descriptor.filename} (attempt ${attempt + 1})"
+                )
+                
+                download(descriptor)
+    
+                if (attempt > 0) {
+    
+                    Log.i(
+                        TAG,
+                        "Succeeded downloading ${descriptor.filename} on attempt ${attempt + 1}."
+                    )
+                }
+    
+                return
+    
+            } catch (e: Exception) {
+    
+                lastException = e
+                storage.deleteIfPresent(tempFilename)
+    
+                Log.w(
+                    TAG,
+                    "Attempt ${attempt + 1} of $MAX_DOWNLOAD_ATTEMPTS failed for ${descriptor.filename}.",
+                    e
+                )
+                
+                if ((attempt + 1) < MAX_DOWNLOAD_ATTEMPTS) {                
+                    delay(1000)
+                }
+            }
+        }
+    
+        throw checkNotNull(lastException)
+    }
+    
+    private suspend fun synchronizeRepository(
+        manifest: FirmwareManifest
+    ): RefreshResult
+    {
+    
+        val updated = mutableListOf<String>()
+        val stale = mutableListOf<String>()
+        val unavailable = mutableListOf<String>()
+        
+        manifest.firmwares.forEach { descriptor ->
+        
+            try {
+        
+                downloadWithRetry(descriptor)
+        
+                storage.promote(
+                    "${descriptor.filename}.part",
+                    descriptor.filename
+                )
+        
+                val file =
+                    storage.find(
+                        descriptor.filename
+                    )
+                        ?: error(
+                            "'${descriptor.filename}' not found after promotion."
+                        )
+        
+                Log.i(
+                    TAG,
+                    "Updated ${descriptor.filename} (${file.length()} bytes)"
+                )
+        
+                updated += descriptor.filename
+        
+            } catch (e: Exception) {
+        
+                if (
+                    storage.find(descriptor.filename) != null
+                ) {
+        
+                    stale += descriptor.filename
+        
+                } else {
+        
+                    unavailable += descriptor.filename
+                }
+            }
+        }
+        return RefreshResult(
+            updated = updated,
+            stale = stale,
+            unavailable = unavailable,
+            verifiedAt = Instant.now()
+        )
     }
 
-    fun find(
-        filename: String
-    ): DocumentFile?
+    private suspend fun download(
+        descriptor: FirmwareDescriptor
+    )
     {
-        return listFiles()
-            .firstOrNull {
-                it.name == filename
+        val request =
+            Request.Builder()
+                .url(descriptor.path)
+                .build()
+                
+        val tempFilename =
+            "${descriptor.filename}.part"
+    
+        client.newCall(request)
+            .execute()
+            .use { response ->
+    
+                check(response.isSuccessful) {
+                    "HTTP ${response.code}"
+                }
+    
+                val file =
+                    storage.createOrReplace(
+                        tempFilename
+                    )
+    
+                storage
+                    .openOutputStream(file)
+                    .use { output ->
+    
+                        response.body!!
+                            .byteStream()
+                            .copyTo(output)
+    
+                    }
+                
+                val checksum = storage.sha256(file)
+                
+                check(
+                    checksum == descriptor.sha256
+                ) {
+                    "SHA-256 verification failed for '${descriptor.filename}'."
+                }
+                
+                Log.i(
+                    TAG,
+                    "Verified ${descriptor.filename}"
+                )
             }
     }
     
-    fun openInputStream(
-        file: DocumentFile
-    ): InputStream
+    suspend fun refresh(): RefreshResult
     {
-        return context.contentResolver
-            .openInputStream(file.uri)
-            ?: error(
-                "Unable to open '${file.name}'."
-            )
-    }
+        return withContext(Dispatchers.IO) {
     
-    fun openOutputStream(
-        file: DocumentFile
-    ): OutputStream
-    {
-        return context.contentResolver
-            .openOutputStream(file.uri)
-            ?: error(
-                "Unable to open '${file.name}'."
-            )
-    }
+            val manifest = loadManifest()
     
-    fun sha256(
-        file: DocumentFile
-    ): String
-    {
-        val digest =
-            MessageDigest.getInstance(
-                "SHA-256"
-            )
+            try {
     
-        openInputStream(file).use { input ->
+                val result =
+                    synchronizeRepository(manifest)
+                
+                Log.i(
+                    TAG,
+                    "Refresh: updated=${result.updated}, " +
+                    "stale=${result.stale}, " +
+                    "unavailable=${result.unavailable}"
+                )
+                
+                result
     
-            val buffer = ByteArray(8192)
+            } catch (e: Exception) {
     
-            while (true) {
+                Log.w(
+                    TAG,
+                    "Unable to refresh firmware library.",
+                    e
+                )
     
-                val count =
-                    input.read(buffer)
-    
-                if (count <= 0)
-                    break
-    
-                digest.update(
-                    buffer,
-                    0,
-                    count
+                RefreshResult(
+                    updated = emptyList(),
+                    stale = emptyList(),
+                    unavailable = manifest.firmwares.map { it.filename },
+                    verifiedAt = null
                 )
             }
         }
-    
-        return digest.digest()
-            .joinToString("") {
-                "%02x".format(it)
-            }
-    }
-    
-    fun createOrReplace(
-        filename: String
-    ): DocumentFile
-    {
-        val root =
-            getRoot()
-                ?: error(
-                    "Firmware repository is not configured."
-                )
-    
-        find(filename)
-            ?.delete()
-    
-        return root.createFile(
-            "application/octet-stream",
-            filename
-        )
-            ?: error(
-                "Unable to create '$filename'."
-            )
-    }
-    
-    fun promote(
-        tempFilename: String,
-        filename: String
-    )
-    {
-        val temp =
-            find(tempFilename)
-                ?: error(
-                    "'$tempFilename' does not exist."
-                )
-    
-        find(filename)
-            ?.delete()
-    
-        val renamedUri =
-            DocumentsContract.renameDocument(
-                context.contentResolver,
-                temp.uri,
-                filename
-            )
-                ?: error(
-                    "Unable to rename '$tempFilename'."
-                )
-    
-        check(
-            renamedUri == temp.uri || find(filename) != null
-        ) {
-            "Unable to promote '$filename'."
-        }
-    }
-    
-    fun deleteIfPresent(
-        filename: String
-    )
-    {
-        find(filename)
-            ?.delete()
     }
 }
