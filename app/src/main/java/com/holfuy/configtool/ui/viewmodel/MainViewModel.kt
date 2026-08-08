@@ -16,6 +16,7 @@ import com.holfuy.configtool.ui.state.MainUiState
 
 class MainViewModel(
     private val holfuyDevice: HolfuyDevice,
+    private val firmwareRepository: FirmwareRepository
 ) : ViewModel()
 {
     companion object {
@@ -40,6 +41,30 @@ class MainViewModel(
         uiState = uiState.copy(
             configuringRepository = false
         )
+    }
+
+    fun onResume()
+    {
+        if (!firmwareRepository.configured) {
+    
+            beginRepositoryConfiguration()
+    
+        } else {
+    
+            viewModelScope.launch {
+    
+                setRefreshResult(null)
+    
+                setRefreshResult(
+                    firmwareRepository.refresh()
+                )
+            }
+            
+            Log.i(
+                TAG,
+                "Firmware repository: ${firmwareRepository.displayName}"
+            )
+        }
     }
     
     fun setRefreshResult(

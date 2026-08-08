@@ -395,7 +395,8 @@ class MainActivity : ComponentActivity()
 
         val factory =
             MainViewModelFactory(
-                holfuyDevice
+                holfuyDevice,
+                firmwareRepository
             )
         
         activityViewModel =
@@ -550,32 +551,14 @@ class MainActivity : ComponentActivity()
         super.onResume()
     
         refreshUsbState()
-    
+        
         Log.i(
             TAG,
             "onResume attached=${DeviceRepository.stateFlow.value.attached} permissionGranted=${DeviceRepository.stateFlow.value.permissionGranted}"
         )
     
-        if (!firmwareRepository.configured) {
-    
-            activityViewModel.beginRepositoryConfiguration()
-    
-        } else {
-    
-            Log.i(
-                TAG,
-                "Firmware repository: ${firmwareRepository.displayName}"
-            )
-            
-            lifecycleScope.launch {
-            
-                activityViewModel.setRefreshResult(null)
-            
-                activityViewModel.setRefreshResult(
-                    firmwareRepository.refresh()
-                )
-            }
-        }
+        activityViewModel.onResume()
+
     }
     
     override fun onConfigurationChanged(
