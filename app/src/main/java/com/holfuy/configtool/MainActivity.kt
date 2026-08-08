@@ -41,6 +41,7 @@ import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.firmware.RefreshResult
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
+import com.holfuy.configtool.ui.screens.RepositoryConfigurationScreen
 import com.holfuy.configtool.ui.theme.HolfuyConfigToolTheme
 import com.holfuy.configtool.ui.viewmodel.MainViewModel
 import com.holfuy.configtool.ui.viewmodel.MainViewModelFactory
@@ -66,7 +67,6 @@ class MainActivity : ComponentActivity()
     private lateinit var usbDeviceProvider: UsbDeviceProvider
     private lateinit var firmwareRepository: FirmwareRepository
     private lateinit var firmwareManager: FirmwareManager
-    private var showFirmwareRepositoryPicker by mutableStateOf(false)
     
     private fun getDisplayName(
         contentResolver: ContentResolver,
@@ -433,17 +433,7 @@ class MainActivity : ComponentActivity()
                             "Firmware folder selected: $uri"
                         )
                     }
-                
-                LaunchedEffect(showFirmwareRepositoryPicker) {
-                
-                    if (showFirmwareRepositoryPicker) {
-                
-                        showFirmwareRepositoryPicker = false
-                
-                        firmwareFolderPicker.launch(null)
-                    }
-                }
-                
+                              
                 val firmwarePicker =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()
@@ -482,7 +472,18 @@ class MainActivity : ComponentActivity()
                     mutableStateOf(false)
                 }
                 
-                if (showHelp) {
+                if (viewModel.uiState.configuringRepository) {
+                
+                    RepositoryConfigurationScreen(
+                        onContinue = {
+                    
+                            activityViewModel.endRepositoryConfiguration()
+                    
+                            firmwareFolderPicker.launch(null)
+                        }
+                    )
+                
+                } else if (showHelp) {
                 
                     HelpScreen(
                         onBack = {
@@ -560,7 +561,7 @@ class MainActivity : ComponentActivity()
     
         if (!firmwareRepository.isConfigured) {
     
-            showFirmwareRepositoryPicker = true
+            activityViewModel.beginRepositoryConfiguration()
     
         } else {
     

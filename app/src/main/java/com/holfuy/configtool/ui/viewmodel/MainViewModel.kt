@@ -28,6 +28,20 @@ class MainViewModel(
     private var firmwareBytes: ByteArray? = null
     val deviceStateFlow = DeviceRepository.stateFlow
       
+    fun beginRepositoryConfiguration()
+    {
+        uiState = uiState.copy(
+            configuringRepository = true
+        )
+    }
+    
+    fun endRepositoryConfiguration()
+    {
+        uiState = uiState.copy(
+            configuringRepository = false
+        )
+    }
+    
     fun setRefreshResult(
         result: RefreshResult?
     )

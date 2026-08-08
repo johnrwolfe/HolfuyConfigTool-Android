@@ -8,5 +8,6 @@ data class MainUiState(
     val firmwareSize: Int? = null,
     val errorMessage: String? = null,
     val updateCompleted: Boolean = false,
-    val refreshResult: RefreshResult? = null
+    val refreshResult: RefreshResult? = null,
+    val configuringRepository: Boolean = false
 )
