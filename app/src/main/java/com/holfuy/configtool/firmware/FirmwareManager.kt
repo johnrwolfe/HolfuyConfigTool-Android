@@ -1,6 +1,5 @@
 package com.holfuy.configtool.firmware
 
-import android.content.Context
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import java.security.MessageDigest
@@ -11,6 +10,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.firmware.RefreshResult
 
 private val json = Json {ignoreUnknownKeys = true}
@@ -18,7 +18,6 @@ private val client = OkHttpClient()
 private const val MANIFEST_URL = "https://holfuy.com/support/firmwares/mobile_upgrader_manifest.json"
 
 class FirmwareManager(
-    private val context: Context,
     private val firmwareRepository: FirmwareRepository
 )
 {
@@ -157,47 +156,6 @@ class FirmwareManager(
         )
     }
 
-    private fun sha256(
-        file: DocumentFile
-    ): String
-    {
-        val digest =
-            MessageDigest.getInstance(
-                "SHA-256"
-            )
-    
-        context.contentResolver
-            .openInputStream(file.uri)
-            .use { input ->
-    
-                check(input != null) {
-                    "Unable to open '${file.name}'."
-                }
-    
-                val buffer =
-                    ByteArray(8192)
-    
-                while (true) {
-    
-                    val count =
-                        input.read(buffer)
-    
-                    if (count < 0)
-                        break
-    
-                    digest.update(
-                        buffer,
-                        0,
-                        count
-                    )
-                }
-            }
-    
-        return digest.digest()
-            .joinToString("") {
-                "%02x".format(it)
-            }
-    }
     private suspend fun download(
         descriptor: FirmwareDescriptor
     )
@@ -223,13 +181,9 @@ class FirmwareManager(
                         tempFilename
                     )
     
-                context.contentResolver
-                    .openOutputStream(file.uri)
+                firmwareRepository
+                    .openOutputStream(file)
                     .use { output ->
-    
-                        check(output != null) {
-                            "Unable to open '${descriptor.filename}'."
-                        }
     
                         response.body!!
                             .byteStream()
@@ -237,7 +191,7 @@ class FirmwareManager(
     
                     }
                 
-                val checksum = sha256(file)
+                val checksum = firmwareRepository.sha256(file)
                 
                 check(
                     checksum == descriptor.sha256

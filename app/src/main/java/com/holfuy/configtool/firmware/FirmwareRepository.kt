@@ -4,6 +4,9 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
+import java.io.InputStream
+import java.io.OutputStream
+import java.security.MessageDigest
 
 
 class FirmwareRepository(
@@ -81,6 +84,63 @@ class FirmwareRepository(
         return listFiles()
             .firstOrNull {
                 it.name == filename
+            }
+    }
+    
+    fun openInputStream(
+        file: DocumentFile
+    ): InputStream
+    {
+        return context.contentResolver
+            .openInputStream(file.uri)
+            ?: error(
+                "Unable to open '${file.name}'."
+            )
+    }
+    
+    fun openOutputStream(
+        file: DocumentFile
+    ): OutputStream
+    {
+        return context.contentResolver
+            .openOutputStream(file.uri)
+            ?: error(
+                "Unable to open '${file.name}'."
+            )
+    }
+    
+    fun sha256(
+        file: DocumentFile
+    ): String
+    {
+        val digest =
+            MessageDigest.getInstance(
+                "SHA-256"
+            )
+    
+        openInputStream(file).use { input ->
+    
+            val buffer = ByteArray(8192)
+    
+            while (true) {
+    
+                val count =
+                    input.read(buffer)
+    
+                if (count <= 0)
+                    break
+    
+                digest.update(
+                    buffer,
+                    0,
+                    count
+                )
+            }
+        }
+    
+        return digest.digest()
+            .joinToString("") {
+                "%02x".format(it)
             }
     }
     

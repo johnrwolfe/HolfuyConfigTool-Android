@@ -379,7 +379,6 @@ class MainActivity : ComponentActivity()
         firmwareRepository = FirmwareRepository(this)
 
         firmwareManager = FirmwareManager(
-            this,
             firmwareRepository
         )
                
