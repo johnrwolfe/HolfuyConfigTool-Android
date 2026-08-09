@@ -11,12 +11,11 @@ import kotlinx.coroutines.launch
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.firmware.FirmwareRepository
-import com.holfuy.configtool.firmware.RefreshResult
 import com.holfuy.configtool.ui.state.MainUiState
 
 class MainViewModel(
     private val holfuyDevice: HolfuyDevice,
-    private val firmwareRepository: FirmwareRepository
+    val firmwareRepository: FirmwareRepository
 ) : ViewModel()
 {
     companion object {
@@ -29,35 +28,17 @@ class MainViewModel(
     private var firmwareBytes: ByteArray? = null
     val deviceStateFlow = DeviceRepository.stateFlow
       
-    fun beginRepositoryConfiguration()
-    {
-        uiState = uiState.copy(
-            configuringRepository = true
-        )
-    }
-    
-    fun endRepositoryConfiguration()
-    {
-        uiState = uiState.copy(
-            configuringRepository = false
-        )
-    }
-
     fun onResume()
     {
         if (!firmwareRepository.configured) {
     
-            beginRepositoryConfiguration()
+            firmwareRepository.beginConfiguration()
     
         } else {
     
             viewModelScope.launch {
     
-                setRefreshResult(null)
-    
-                setRefreshResult(
-                    firmwareRepository.refresh()
-                )
+                firmwareRepository.refresh()
             }
             
             Log.i(
@@ -65,15 +46,6 @@ class MainViewModel(
                 "Firmware repository: ${firmwareRepository.displayName}"
             )
         }
-    }
-    
-    fun setRefreshResult(
-        result: RefreshResult?
-    )
-    {
-        uiState = uiState.copy(
-            refreshResult = result
-        )
     }
     
     fun setFirmware(

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.holfuy.configtool.BuildConfig
 import com.holfuy.configtool.device.DeviceState
+import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.MainUiState
 
 private val SECTION_SPACING = 24.dp
@@ -34,6 +35,7 @@ fun MainScreen(
     onUpdateFirmwareClick: () -> Unit,
     onHelpClick: () -> Unit,
     repositoryDisplayName: String?,
+    repositoryStatus: RepositoryStatus,
     onRefreshRepositoryClick: () -> Unit,
     lastVerifiedText: String?
 )
@@ -77,17 +79,15 @@ fun MainScreen(
         
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                val refreshResult = uiState.refreshResult
-                
                 Text(
                     when {
-                        refreshResult == null ->
+                        repositoryStatus.refreshing ->
                             "Refreshing..."
                 
-                        refreshResult.unavailable.isNotEmpty() ->
+                        repositoryStatus.unavailable.isNotEmpty() ->
                             "Some firmware unavailable"
                 
-                        refreshResult.stale.isNotEmpty() ->
+                        repositoryStatus.stale.isNotEmpty() ->
                             "Using existing firmware for some devices"
                 
                         else ->

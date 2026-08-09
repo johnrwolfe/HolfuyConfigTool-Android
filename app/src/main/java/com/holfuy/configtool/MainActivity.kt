@@ -38,7 +38,6 @@ import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
 import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.firmware.RepositoryStorage
-import com.holfuy.configtool.firmware.RefreshResult
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
 import com.holfuy.configtool.ui.screens.RepositoryConfigurationScreen
@@ -65,8 +64,6 @@ class MainActivity : ComponentActivity()
     private lateinit var usbManager: UsbManager
     private lateinit var holfuyDevice: HolfuyDevice
     private lateinit var usbDeviceProvider: UsbDeviceProvider
-    private lateinit var firmwareRepository: FirmwareRepository
-    private lateinit var repositoryStorage: RepositoryStorage
     
     private fun getDisplayName(
         contentResolver: ContentResolver,
@@ -376,9 +373,9 @@ class MainActivity : ComponentActivity()
                 usbDeviceProvider
             )
         
-        repositoryStorage = RepositoryStorage(this)
+        val repositoryStorage = RepositoryStorage(this)
         
-        firmwareRepository = FirmwareRepository(repositoryStorage)
+        val firmwareRepository = FirmwareRepository(repositoryStorage)
                
         registerReceivers()
 
@@ -409,7 +406,7 @@ class MainActivity : ComponentActivity()
             HolfuyConfigToolTheme {
                 
                 val viewModel = activityViewModel
-                             
+                                           
                 val firmwareFolderPicker =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.OpenDocumentTree()
@@ -470,13 +467,13 @@ class MainActivity : ComponentActivity()
                     mutableStateOf(false)
                 }
                 
-                if (viewModel.uiState.configuringRepository) {
+                if (viewModel.firmwareRepository.status.configuring) {
                 
                     RepositoryConfigurationScreen(
                         onContinue = {
-                    
-                            activityViewModel.endRepositoryConfiguration()
-                    
+                        
+                            viewModel.firmwareRepository.endConfiguration()
+                        
                             firmwareFolderPicker.launch(null)
                         }
                     )
@@ -510,22 +507,21 @@ class MainActivity : ComponentActivity()
                             showHelp = true
                         },
                         
-                        repositoryDisplayName = firmwareRepository.displayName,
+                        repositoryDisplayName =
+                            viewModel.firmwareRepository.displayName,
+                            
+                        repositoryStatus =
+                            viewModel.firmwareRepository.status,
                         
                         onRefreshRepositoryClick = {
                             lifecycleScope.launch {
                         
-                                viewModel.setRefreshResult(null)
-                        
-                                viewModel.setRefreshResult(
-                                    firmwareRepository.refresh()
-                                )
+                                viewModel.firmwareRepository.refresh()
                             }
                         },
 
                         lastVerifiedText =
-                            viewModel.uiState.refreshResult
-                                ?.verifiedAt
+                            viewModel.firmwareRepository.status.lastVerified
                                 ?.let(::formatInstant)
                     )
                 }

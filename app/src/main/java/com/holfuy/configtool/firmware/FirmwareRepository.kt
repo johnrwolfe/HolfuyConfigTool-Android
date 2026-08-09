@@ -2,6 +2,9 @@ package com.holfuy.configtool.firmware
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.documentfile.provider.DocumentFile
 import java.security.MessageDigest
 import java.time.Instant
@@ -27,11 +30,30 @@ class FirmwareRepository(
         private const val MAX_DOWNLOAD_ATTEMPTS = 5
     }
     
+    var status by mutableStateOf(
+        RepositoryStatus()
+    )
+        private set
+    
     val displayName: String?
         get() = storage.displayName
         
     val configured: Boolean
         get() = storage.configured
+        
+    fun beginConfiguration()
+    {
+        status = status.copy(
+            configuring = true
+        )
+    }
+    
+    fun endConfiguration()
+    {
+        status = status.copy(
+            configuring = false
+        )
+    }
     
     fun configure(
         rootUri: Uri
@@ -222,27 +244,40 @@ class FirmwareRepository(
             }
     }
     
-    suspend fun refresh(): RefreshResult
+    suspend fun refresh()
     {
-        return withContext(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
+    
+            status = status.copy(
+                refreshing = true
+            )
     
             val manifest = loadManifest()
     
             try {
     
                 val result =
-                    synchronizeRepository(manifest)
-                
+                    synchronizeRepository(
+                        manifest
+                    )
+    
+                status = status.copy(
+                    refreshing = false,
+                    lastVerified = result.verifiedAt,
+                    updated = result.updated,
+                    stale = result.stale,
+                    unavailable = result.unavailable
+                )
+    
                 Log.i(
                     TAG,
                     "Refresh: updated=${result.updated}, " +
                     "stale=${result.stale}, " +
                     "unavailable=${result.unavailable}"
                 )
-                
-                result
     
-            } catch (e: Exception) {
+            }
+            catch (e: Exception) {
     
                 Log.w(
                     TAG,
@@ -250,11 +285,15 @@ class FirmwareRepository(
                     e
                 )
     
-                RefreshResult(
+                status = status.copy(
+                    refreshing = false,
+                    lastVerified = null,
                     updated = emptyList(),
                     stale = emptyList(),
-                    unavailable = manifest.firmwares.map { it.filename },
-                    verifiedAt = null
+                    unavailable =
+                        manifest.firmwares.map {
+                            it.filename
+                        }
                 )
             }
         }
