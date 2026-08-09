@@ -404,7 +404,7 @@ class MainActivity : ComponentActivity()
                             Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                         )
                 
-                        firmwareRepository.configure(uri)
+                        viewModel.configureRepository(uri)
                 
                         Log.i(
                             TAG,
@@ -450,12 +450,12 @@ class MainActivity : ComponentActivity()
                     mutableStateOf(false)
                 }
                 
-                if (viewModel.firmwareRepository.status.configuring) {
+                if (viewModel.repositoryStatus.configuring) {
                 
                     RepositoryConfigurationScreen(
                         onContinue = {
                         
-                            viewModel.firmwareRepository.endConfiguration()
+                            viewModel.endRepositoryConfiguration()
                         
                             firmwareFolderPicker.launch(null)
                         }
@@ -491,14 +491,11 @@ class MainActivity : ComponentActivity()
                         },
                         
                         repositoryStatus =
-                            viewModel.firmwareRepository.status,
+                            viewModel.repositoryStatus,
                         
-                        onRefreshRepositoryClick = {
-                            lifecycleScope.launch {
-                        
-                                viewModel.firmwareRepository.refresh()
-                            }
-                        }
+                        onRefreshRepositoryClick =
+                            viewModel::refreshRepository
+                      
                     )
                 }
             }

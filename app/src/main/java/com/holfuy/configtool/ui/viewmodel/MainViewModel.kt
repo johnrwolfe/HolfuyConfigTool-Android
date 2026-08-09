@@ -1,5 +1,6 @@
 package com.holfuy.configtool.ui.viewmodel
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,11 +12,12 @@ import kotlinx.coroutines.launch
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.firmware.FirmwareRepository
+import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.MainUiState
 
 class MainViewModel(
     private val holfuyDevice: HolfuyDevice,
-    val firmwareRepository: FirmwareRepository
+    private val firmwareRepository: FirmwareRepository
 ) : ViewModel()
 {
     companion object {
@@ -27,6 +29,30 @@ class MainViewModel(
         
     private var firmwareBytes: ByteArray? = null
     val deviceStateFlow = DeviceRepository.stateFlow
+    val repositoryStatus: RepositoryStatus
+        get() = firmwareRepository.status
+        
+    fun configureRepository(
+        rootUri: Uri
+    )
+    {
+        firmwareRepository.configure(
+            rootUri
+        )
+    }
+        
+    fun refreshRepository()
+    {
+        viewModelScope.launch {
+    
+            firmwareRepository.refresh()
+        }
+    }
+    
+    fun endRepositoryConfiguration()
+    {
+        firmwareRepository.endConfiguration()
+    }
       
     fun onResume()
     {
