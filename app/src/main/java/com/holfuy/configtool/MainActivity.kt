@@ -491,11 +491,7 @@ class MainActivity : ComponentActivity()
                         },
                         
                         repositoryStatus =
-                            viewModel.repositoryStatus,
-                        
-                        onRefreshRepositoryClick =
-                            viewModel::refreshRepository
-                      
+                            viewModel.repositoryStatus                      
                     )
                 }
             }

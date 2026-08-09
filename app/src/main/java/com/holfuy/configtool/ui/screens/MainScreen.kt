@@ -38,8 +38,7 @@ fun MainScreen(
     onSelectFirmwareClick: () -> Unit,
     onUpdateFirmwareClick: () -> Unit,
     onHelpClick: () -> Unit,
-    repositoryStatus: RepositoryStatus,
-    onRefreshRepositoryClick: () -> Unit
+    repositoryStatus: RepositoryStatus
 )
 {
     Column(
@@ -108,15 +107,6 @@ fun MainScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Button(
-                    enabled = true,
-                    onClick = onRefreshRepositoryClick
-                ) {
-                    Text("Check for Updates")
-                }
             }
         }
         Spacer(modifier = Modifier.height(SECTION_SPACING))       
