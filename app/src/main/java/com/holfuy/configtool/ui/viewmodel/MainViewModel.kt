@@ -30,7 +30,7 @@ class MainViewModel(
       
     fun onResume()
     {
-        if (!firmwareRepository.configured) {
+        if (!firmwareRepository.status.configured) {
     
             firmwareRepository.beginConfiguration()
     
@@ -43,7 +43,7 @@ class MainViewModel(
             
             Log.i(
                 TAG,
-                "Firmware repository: ${firmwareRepository.displayName}"
+                "Firmware repository: ${firmwareRepository.status.displayName}"
             )
         }
     }

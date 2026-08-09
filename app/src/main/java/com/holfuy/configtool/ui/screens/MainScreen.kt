@@ -19,6 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import com.holfuy.configtool.BuildConfig
 import com.holfuy.configtool.device.DeviceState
 import com.holfuy.configtool.firmware.RepositoryStatus
@@ -34,10 +38,8 @@ fun MainScreen(
     onSelectFirmwareClick: () -> Unit,
     onUpdateFirmwareClick: () -> Unit,
     onHelpClick: () -> Unit,
-    repositoryDisplayName: String?,
     repositoryStatus: RepositoryStatus,
-    onRefreshRepositoryClick: () -> Unit,
-    lastVerifiedText: String?
+    onRefreshRepositoryClick: () -> Unit
 )
 {
     Column(
@@ -73,7 +75,7 @@ fun MainScreen(
                 Text("Firmware Repository")
         
                 Text(
-                    repositoryDisplayName
+                    repositoryStatus.displayName
                         ?: "Not configured"
                 )
         
@@ -95,15 +97,17 @@ fun MainScreen(
                     }
                 )
                 
-                lastVerifiedText?.let {
+                repositoryStatus.lastVerified
+                    ?.let(::formatInstant)
+                    ?.let {
                 
-                    Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                 
-                    Text(
-                        "Last verified: $it",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
+                        Text(
+                            "Last verified: $it",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
@@ -241,4 +245,17 @@ fun MainScreen(
             style = MaterialTheme.typography.bodySmall
         )
     }
+}
+
+private fun formatInstant(
+    instant: Instant
+): String
+{
+    return DateTimeFormatter
+        .ofLocalizedDateTime(
+            FormatStyle.MEDIUM,
+            FormatStyle.SHORT
+        )
+        .withZone(ZoneId.systemDefault())
+        .format(instant)
 }

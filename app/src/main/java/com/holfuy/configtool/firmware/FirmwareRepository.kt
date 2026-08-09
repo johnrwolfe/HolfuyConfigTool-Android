@@ -31,15 +31,12 @@ class FirmwareRepository(
     }
     
     var status by mutableStateOf(
-        RepositoryStatus()
+        RepositoryStatus(
+            configured = storage.configured,
+            displayName = storage.displayName
+        )
     )
         private set
-    
-    val displayName: String?
-        get() = storage.displayName
-        
-    val configured: Boolean
-        get() = storage.configured
         
     fun beginConfiguration()
     {
@@ -62,8 +59,13 @@ class FirmwareRepository(
         storage.setRepositoryRoot(
             rootUri
         )
+    
+        status = status.copy(
+            configured = storage.configured,
+            displayName = storage.displayName
+        )
     }
-
+    
     private fun downloadManifest(): String
     {
         val request =
