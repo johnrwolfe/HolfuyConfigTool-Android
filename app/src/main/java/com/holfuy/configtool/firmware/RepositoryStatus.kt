@@ -7,8 +7,7 @@ data class RepositoryStatus(
     val displayName: String? = null,
     val configuring: Boolean = false,
     val refreshing: Boolean = false,
-    val lastVerified: Instant? = null,
-    val updated: List<String> = emptyList(),
-    val stale: List<String> = emptyList(),
-    val unavailable: List<String> = emptyList()
+    val lastSuccessfullyChecked: Instant? = null,
+    val lastCheckFailed: Instant? = null,
+    val firmware: List<FirmwareStatus> = emptyList()
 )

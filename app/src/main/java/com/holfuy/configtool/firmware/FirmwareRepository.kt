@@ -16,8 +16,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import com.holfuy.configtool.firmware.RepositoryStorage
-import com.holfuy.configtool.firmware.RefreshResult
 
 private val json = Json {ignoreUnknownKeys = true}
 private val client = OkHttpClient()
@@ -145,11 +143,10 @@ class FirmwareRepository(
     
     private suspend fun synchronizeRepository(
         manifest: FirmwareManifest
-    ): RefreshResult
+    ): List<FirmwareStatus>
     {
-        val updated = mutableListOf<String>()
-        val stale = mutableListOf<String>()
-        val unavailable = mutableListOf<String>()
+        val firmwareStatus =
+            mutableListOf<FirmwareStatus>()
     
         manifest.firmwares.forEach { descriptor ->
     
@@ -158,49 +155,7 @@ class FirmwareRepository(
                     descriptor.filename
                 )
     
-            var needsDownload = false
-    
             if (existingFile == null) {
-    
-                needsDownload = true
-    
-            } else {
-    
-                try {
-    
-                    val checksum =
-                        storage.sha256(
-                            existingFile
-                        )
-    
-                    if (checksum != descriptor.sha256) {
-    
-                        stale += descriptor.filename
-                        needsDownload = true
-    
-                    } else {
-    
-                        Log.i(
-                            TAG,
-                            "Verified existing ${descriptor.filename}"
-                        )
-    
-                        return@forEach
-                    }
-    
-                } catch (e: Exception) {
-    
-                    Log.w(
-                        TAG,
-                        "Unable to verify existing ${descriptor.filename}; will download replacement.",
-                        e
-                    )
-    
-                    needsDownload = true
-                }
-            }
-    
-            if (needsDownload) {
     
                 try {
     
@@ -223,50 +178,187 @@ class FirmwareRepository(
     
                     Log.i(
                         TAG,
-                        "Updated ${descriptor.filename} (${file.length()} bytes)"
+                        "Downloaded ${descriptor.filename} (${file.length()} bytes)"
                     )
     
-                    updated += descriptor.filename
-    
-                    // If the file was previously classified as stale,
-                    // it is now current.
-                    stale.remove(
-                        descriptor.filename
-                    )
+                    firmwareStatus +=
+                        FirmwareStatus(
+                            descriptor.filename,
+                            FirmwareDisposition.CURRENT
+                        )
     
                 } catch (e: Exception) {
     
-                    if (
-                        existingFile != null &&
-                        stale.contains(descriptor.filename)
-                    ) {
+                    Log.w(
+                        TAG,
+                        "Unable to obtain ${descriptor.filename}.",
+                        e
+                    )
     
-                        Log.w(
-                            TAG,
-                            "Unable to replace outdated ${descriptor.filename}.",
-                            e
+                    firmwareStatus +=
+                        FirmwareStatus(
+                            descriptor.filename,
+                            FirmwareDisposition.MISSING
                         )
+                }
+    
+            } else {
+    
+                try {
+    
+                    val checksum =
+                        storage.sha256(
+                            existingFile
+                        )
+    
+                    if (checksum == descriptor.sha256) {
+    
+                        Log.i(
+                            TAG,
+                            "Verified existing ${descriptor.filename}"
+                        )
+    
+                        firmwareStatus +=
+                            FirmwareStatus(
+                                descriptor.filename,
+                                FirmwareDisposition.CURRENT
+                            )
     
                     } else {
     
-                        unavailable += descriptor.filename
+                        Log.i(
+                            TAG,
+                            "${descriptor.filename} is outdated; downloading replacement."
+                        )
+    
+                        try {
+    
+                            downloadWithRetry(
+                                descriptor
+                            )
+    
+                            storage.promote(
+                                "${descriptor.filename}.part",
+                                descriptor.filename
+                            )
+    
+                            val file =
+                                storage.find(
+                                    descriptor.filename
+                                )
+                                    ?: error(
+                                        "'${descriptor.filename}' not found after promotion."
+                                    )
+    
+                            Log.i(
+                                TAG,
+                                "Updated ${descriptor.filename} (${file.length()} bytes)"
+                            )
+    
+                            firmwareStatus +=
+                                FirmwareStatus(
+                                    descriptor.filename,
+                                    FirmwareDisposition.CURRENT
+                                )
+    
+                        } catch (e: Exception) {
+    
+                            Log.w(
+                                TAG,
+                                "Unable to replace outdated ${descriptor.filename}.",
+                                e
+                            )
+    
+                            firmwareStatus +=
+                                FirmwareStatus(
+                                    descriptor.filename,
+                                    FirmwareDisposition.OUTDATED
+                                )
+                        }
+                    }
+    
+                } catch (e: Exception) {
+    
+                    Log.w(
+                        TAG,
+                        "Unable to verify existing ${descriptor.filename}; will download replacement.",
+                        e
+                    )
+    
+                    try {
+    
+                        downloadWithRetry(
+                            descriptor
+                        )
+    
+                        storage.promote(
+                            "${descriptor.filename}.part",
+                            descriptor.filename
+                        )
+    
+                        val file =
+                            storage.find(
+                                descriptor.filename
+                            )
+                                ?: error(
+                                    "'${descriptor.filename}' not found after promotion."
+                                )
+    
+                        Log.i(
+                            TAG,
+                            "Replaced unreadable ${descriptor.filename} (${file.length()} bytes)"
+                        )
+    
+                        firmwareStatus +=
+                            FirmwareStatus(
+                                descriptor.filename,
+                                FirmwareDisposition.CURRENT
+                            )
+    
+                    } catch (downloadException: Exception) {
     
                         Log.w(
                             TAG,
-                            "Unable to obtain ${descriptor.filename}.",
-                            e
+                            "Unable to replace unreadable ${descriptor.filename}.",
+                            downloadException
                         )
+    
+                        /*
+                         * The file exists, but we were unable to establish
+                         * whether its contents match the manifest. Per our
+                         * agreed semantics, treat this as an unusable local
+                         * copy for purposes of refresh.
+                         */
+                        firmwareStatus +=
+                            FirmwareStatus(
+                                descriptor.filename,
+                                FirmwareDisposition.OUTDATED
+                            )
                     }
                 }
             }
         }
     
-        return RefreshResult(
-            updated = updated,
-            stale = stale,
-            unavailable = unavailable,
-            verifiedAt = Instant.now()
-        )
+        /*
+         * Files in the repository that are not mentioned in the manifest
+         * are deliberately left untouched and are reported as UNKNOWN.
+         */
+        storage.listFiles()
+            .filter { file ->
+                firmwareStatus.none {
+                    it.filename == file.name
+                }
+            }
+            .forEach { file ->
+    
+                firmwareStatus +=
+                    FirmwareStatus(
+                        file.name!!,
+                        FirmwareDisposition.UNKNOWN
+                    )
+            }
+    
+        return firmwareStatus
     }
 
     private suspend fun download(
@@ -322,65 +414,64 @@ class FirmwareRepository(
     suspend fun refresh()
     {
         if (!refreshMutex.tryLock()) {
+    
             Log.i(
                 TAG,
                 "Refresh already in progress; ignoring request."
             )
+    
             return
         }
-        withContext(Dispatchers.IO) {
     
-            status = status.copy(
-                refreshing = true
-            )
+        try {
     
-            val manifest = loadManifest()
+            withContext(Dispatchers.IO) {
     
-            try {
+                status = status.copy(
+                    refreshing = true
+                )
     
-                val result =
-                    synchronizeRepository(
-                        manifest
+                try {
+    
+                    val manifest =
+                        loadManifest()
+    
+                    val firmwareStatus =
+                        synchronizeRepository(
+                            manifest
+                        )
+    
+                    status = status.copy(
+                        refreshing = false,
+                        lastSuccessfullyChecked = Instant.now(),
+                        lastCheckFailed = null,
+                        firmware = firmwareStatus
                     )
     
-                status = status.copy(
-                    refreshing = false,
-                    lastVerified = result.verifiedAt,
-                    updated = result.updated,
-                    stale = result.stale,
-                    unavailable = result.unavailable
-                )
+                    Log.i(
+                        TAG,
+                        "Refresh completed successfully."
     
-                Log.i(
-                    TAG,
-                    "Refresh: updated=${result.updated}, " +
-                    "stale=${result.stale}, " +
-                    "unavailable=${result.unavailable}"
-                )
+                    )
     
+                } catch (e: Exception) {
+    
+                    Log.w(
+                        TAG,
+                        "Unable to check firmware repository.",
+                        e
+                    )
+    
+                    status = status.copy(
+                        refreshing = false,
+                        lastCheckFailed = Instant.now()
+                    )
+                }
             }
-            catch (e: Exception) {
     
-                Log.w(
-                    TAG,
-                    "Unable to refresh firmware library.",
-                    e
-                )
+        } finally {
     
-                status = status.copy(
-                    refreshing = false,
-                    lastVerified = null,
-                    updated = emptyList(),
-                    stale = emptyList(),
-                    unavailable =
-                        manifest.firmwares.map {
-                            it.filename
-                        }
-                )
-            }
-            finally {
-                refreshMutex.unlock()
-            }
+            refreshMutex.unlock()
         }
     }
 }

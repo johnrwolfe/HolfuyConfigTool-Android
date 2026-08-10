@@ -25,6 +25,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import com.holfuy.configtool.BuildConfig
 import com.holfuy.configtool.device.DeviceState
+import com.holfuy.configtool.firmware.FirmwareDisposition
 import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.MainUiState
 
@@ -63,7 +64,7 @@ fun MainScreen(
             Text("Help")
         }
 
-        Spacer(modifier = Modifier.height(16.dp)) 
+        Spacer(modifier = Modifier.height(16.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -72,44 +73,87 @@ fun MainScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text("Firmware Repository")
-        
+
                 Text(
                     repositoryStatus.displayName
                         ?: "Not configured"
                 )
-        
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    when {
-                        repositoryStatus.refreshing ->
-                            "Refreshing..."
-                
-                        repositoryStatus.unavailable.isNotEmpty() ->
-                            "Some firmware unavailable"
-                
-                        repositoryStatus.stale.isNotEmpty() ->
-                            "Using existing firmware for some devices"
-                
-                        else ->
-                            "Firmware library is current"
-                    }
-                )
-                
-                repositoryStatus.lastVerified
-                    ?.let(::formatInstant)
-                    ?.let {
-                
-                        Spacer(modifier = Modifier.height(4.dp))
-                
+
+                if (repositoryStatus.refreshing) {
+
+                    Text("Refreshing...")
+
+                } else {
+
+                    repositoryStatus.lastSuccessfullyChecked
+                        ?.let(::formatInstant)
+                        ?.let {
+
+                            Text(
+                                "Last successfully checked: $it",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
+                    val lastCheckFailed =
+                        repositoryStatus.lastCheckFailed
+
+                    val lastSuccessfullyChecked =
+                        repositoryStatus.lastSuccessfullyChecked
+
+                    if (
+                        lastCheckFailed != null &&
+                        (
+                            lastSuccessfullyChecked == null ||
+                            lastCheckFailed > lastSuccessfullyChecked
+                        )
+                    ) {
+
+                        Spacer(
+                            modifier = Modifier.height(4.dp)
+                        )
+
                         Text(
-                            "Last verified: $it",
+                            "Unable to check for firmware at " +
+                                formatInstant(lastCheckFailed),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
+                }
+
+                if (repositoryStatus.firmware.isNotEmpty()) {
+
+                    Spacer(
+                        modifier = Modifier.height(12.dp)
+                    )
+
+                    repositoryStatus.firmware.forEach { firmware ->
+
+                        Text(
+                            "${firmware.filename}: " +
+                                when (firmware.disposition) {
+
+                                    FirmwareDisposition.CURRENT ->
+                                        "Current"
+
+                                    FirmwareDisposition.OUTDATED ->
+                                        "Outdated"
+
+                                    FirmwareDisposition.MISSING ->
+                                        "Missing"
+
+                                    FirmwareDisposition.UNKNOWN ->
+                                        "Unknown"
+                                }
+                        )
+                    }
+                }
             }
         }
-        Spacer(modifier = Modifier.height(SECTION_SPACING))       
+
+        Spacer(modifier = Modifier.height(SECTION_SPACING))
 
         Button(
             enabled = !deviceState.updateInProgress,
@@ -226,7 +270,7 @@ fun MainScreen(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(SECTION_SPACING))
 
         Text(
