@@ -10,6 +10,8 @@ import java.security.MessageDigest
 import java.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -29,6 +31,8 @@ class FirmwareRepository(
         private const val TAG = "HolfuyUSB-FW"
         private const val MAX_DOWNLOAD_ATTEMPTS = 5
     }
+    
+    private val refreshMutex = Mutex()
     
     var status by mutableStateOf(
         RepositoryStatus(
@@ -248,6 +252,13 @@ class FirmwareRepository(
     
     suspend fun refresh()
     {
+        if (!refreshMutex.tryLock()) {
+            Log.i(
+                TAG,
+                "Refresh already in progress; ignoring request."
+            )
+            return
+        }
         withContext(Dispatchers.IO) {
     
             status = status.copy(
@@ -297,6 +308,9 @@ class FirmwareRepository(
                             it.filename
                         }
                 )
+            }
+            finally {
+                refreshMutex.unlock()
             }
         }
     }
