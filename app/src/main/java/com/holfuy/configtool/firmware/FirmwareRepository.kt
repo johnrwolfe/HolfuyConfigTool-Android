@@ -147,51 +147,120 @@ class FirmwareRepository(
         manifest: FirmwareManifest
     ): RefreshResult
     {
-    
         val updated = mutableListOf<String>()
         val stale = mutableListOf<String>()
         val unavailable = mutableListOf<String>()
-        
+    
         manifest.firmwares.forEach { descriptor ->
-        
-            try {
-        
-                downloadWithRetry(descriptor)
-        
-                storage.promote(
-                    "${descriptor.filename}.part",
+    
+            val existingFile =
+                storage.find(
                     descriptor.filename
                 )
-        
-                val file =
-                    storage.find(
+    
+            var needsDownload = false
+    
+            if (existingFile == null) {
+    
+                needsDownload = true
+    
+            } else {
+    
+                try {
+    
+                    val checksum =
+                        storage.sha256(
+                            existingFile
+                        )
+    
+                    if (checksum != descriptor.sha256) {
+    
+                        stale += descriptor.filename
+                        needsDownload = true
+    
+                    } else {
+    
+                        Log.i(
+                            TAG,
+                            "Verified existing ${descriptor.filename}"
+                        )
+    
+                        return@forEach
+                    }
+    
+                } catch (e: Exception) {
+    
+                    Log.w(
+                        TAG,
+                        "Unable to verify existing ${descriptor.filename}; will download replacement.",
+                        e
+                    )
+    
+                    needsDownload = true
+                }
+            }
+    
+            if (needsDownload) {
+    
+                try {
+    
+                    downloadWithRetry(
+                        descriptor
+                    )
+    
+                    storage.promote(
+                        "${descriptor.filename}.part",
                         descriptor.filename
                     )
-                        ?: error(
-                            "'${descriptor.filename}' not found after promotion."
+    
+                    val file =
+                        storage.find(
+                            descriptor.filename
                         )
-        
-                Log.i(
-                    TAG,
-                    "Updated ${descriptor.filename} (${file.length()} bytes)"
-                )
-        
-                updated += descriptor.filename
-        
-            } catch (e: Exception) {
-        
-                if (
-                    storage.find(descriptor.filename) != null
-                ) {
-        
-                    stale += descriptor.filename
-        
-                } else {
-        
-                    unavailable += descriptor.filename
+                            ?: error(
+                                "'${descriptor.filename}' not found after promotion."
+                            )
+    
+                    Log.i(
+                        TAG,
+                        "Updated ${descriptor.filename} (${file.length()} bytes)"
+                    )
+    
+                    updated += descriptor.filename
+    
+                    // If the file was previously classified as stale,
+                    // it is now current.
+                    stale.remove(
+                        descriptor.filename
+                    )
+    
+                } catch (e: Exception) {
+    
+                    if (
+                        existingFile != null &&
+                        stale.contains(descriptor.filename)
+                    ) {
+    
+                        Log.w(
+                            TAG,
+                            "Unable to replace outdated ${descriptor.filename}.",
+                            e
+                        )
+    
+                    } else {
+    
+                        unavailable += descriptor.filename
+    
+                        Log.w(
+                            TAG,
+                            "Unable to obtain ${descriptor.filename}.",
+                            e
+                        )
+                    }
                 }
             }
         }
+    
         return RefreshResult(
             updated = updated,
             stale = stale,
