@@ -33,6 +33,7 @@ import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
 import com.holfuy.configtool.firmware.FirmwareRepository
+import com.holfuy.configtool.firmware.ManifestConfiguration
 import com.holfuy.configtool.firmware.RepositoryStorage
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
@@ -358,7 +359,10 @@ class MainActivity : ComponentActivity()
         
         val repositoryStorage = RepositoryStorage(this)
         
-        val firmwareRepository = FirmwareRepository(repositoryStorage)
+        val manifestConfiguration = ManifestConfiguration(this)
+        
+        val firmwareRepository = 
+            FirmwareRepository(repositoryStorage, manifestConfiguration)
                
         registerReceivers()
 

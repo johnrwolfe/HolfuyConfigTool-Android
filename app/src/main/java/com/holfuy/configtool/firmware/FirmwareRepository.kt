@@ -19,10 +19,10 @@ import okhttp3.Request
 
 private val json = Json {ignoreUnknownKeys = true}
 private val client = OkHttpClient()
-private const val MANIFEST_URL = "https://holfuy.com/support/firmwares/mobile_upgrader_manifest.json"
 
 class FirmwareRepository(
-    private val storage: RepositoryStorage
+    private val storage: RepositoryStorage,
+    private val manifestConfiguration: ManifestConfiguration
 )
 {
     companion object {
@@ -72,7 +72,7 @@ class FirmwareRepository(
     {
         val request =
             Request.Builder()
-                .url(MANIFEST_URL)
+                .url(manifestConfiguration.manifestUrl)
                 .build()
     
         client.newCall(request)
