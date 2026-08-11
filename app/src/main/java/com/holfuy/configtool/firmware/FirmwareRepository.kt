@@ -431,42 +431,43 @@ class FirmwareRepository(
                     refreshing = true
                 )
     
-                try {
+                val manifest =
+                    try {
     
-                    val manifest =
                         loadManifest()
     
-                    val firmwareStatus =
-                        synchronizeRepository(
-                            manifest
+                    } catch (e: Exception) {
+    
+                        Log.w(
+                            TAG,
+                            "Unable to download firmware manifest.",
+                            e
                         )
     
-                    status = status.copy(
-                        refreshing = false,
-                        lastSuccessfullyChecked = Instant.now(),
-                        lastCheckFailed = null,
-                        firmware = firmwareStatus
+                        status = status.copy(
+                            refreshing = false,
+                            lastCheckFailed = Instant.now()
+                        )
+    
+                        return@withContext
+                    }
+    
+                val firmwareStatus =
+                    synchronizeRepository(
+                        manifest
                     )
     
-                    Log.i(
-                        TAG,
-                        "Refresh completed successfully."
+                status = status.copy(
+                    refreshing = false,
+                    lastSuccessfullyChecked = Instant.now(),
+                    lastCheckFailed = null,
+                    firmware = firmwareStatus
+                )
     
-                    )
-    
-                } catch (e: Exception) {
-    
-                    Log.w(
-                        TAG,
-                        "Unable to check firmware repository.",
-                        e
-                    )
-    
-                    status = status.copy(
-                        refreshing = false,
-                        lastCheckFailed = Instant.now()
-                    )
-                }
+                Log.i(
+                    TAG,
+                    "Refresh completed successfully."
+                )
             }
     
         } finally {
