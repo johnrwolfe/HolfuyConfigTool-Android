@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
+import com.holfuy.configtool.firmware.FirmwareFile
 import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.MainUiState
@@ -26,8 +27,6 @@ class MainViewModel(
     
     var uiState by mutableStateOf(MainUiState())
         private set
-        
-    private var firmwareBytes: ByteArray? = null
     val deviceStateFlow = DeviceRepository.stateFlow
     val repositoryStatus: RepositoryStatus
         get() = firmwareRepository.status
@@ -75,15 +74,11 @@ class MainViewModel(
     }
     
     fun setFirmware(
-        fileName: String,
-        bytes: ByteArray
+        file: FirmwareFile
     )
     {
-        firmwareBytes = bytes
-    
         uiState = uiState.copy(
-            firmwareFileName = fileName,
-            firmwareSize = bytes.size,
+            selectedFirmware = file
         )
     }
         
@@ -130,7 +125,9 @@ class MainViewModel(
     
     fun updateFirmware()
     {
-        val bytes = firmwareBytes ?: return
+        val firmware =
+            uiState.selectedFirmware
+                ?: return
     
         viewModelScope.launch(Dispatchers.IO) {
     
@@ -153,6 +150,18 @@ class MainViewModel(
                     updateCompleted = false
                 )
     
+                val bytes =
+                    firmware
+                        .openInputStream()
+                        .use { input ->
+                            input.readBytes()
+                        }
+    
+                Log.i(
+                    TAG,
+                    "Loaded firmware: ${firmware.name} (${bytes.size} bytes)"
+                )
+    
                 val success =
                     holfuyDevice.updateFirmware(
                         bytes
@@ -160,7 +169,7 @@ class MainViewModel(
     
                         DeviceRepository.setUpdateProgress(
                             progress
-                        )   
+                        )
                     }
     
                 uiState = uiState.copy(

@@ -1,0 +1,217 @@
+package com.holfuy.configtool.ui.screens
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.holfuy.configtool.firmware.FirmwareFile
+import com.holfuy.configtool.firmware.FirmwareStatus
+import com.holfuy.configtool.firmware.RepositoryStatus
+
+@Composable
+fun SelectFirmwareScreen(
+    repositoryStatus: RepositoryStatus,
+    selectedFirmware: FirmwareFile?,
+    onSelect: (FirmwareFile) -> Unit,
+    onBrowse: (() -> Unit),
+    onBack: () -> Unit
+)
+{
+    BackHandler(
+        onBack = onBack
+    )
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Top
+    )
+    {
+        Text(
+            text = "Select Firmware"
+        )
+
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
+
+        if (repositoryStatus.firmware.isEmpty()) {
+
+            Text(
+                "No firmware files are available in the repository."
+            )
+
+        } else {
+
+            repositoryStatus.firmware.forEach { firmware ->
+
+                when (firmware) {
+
+                    is FirmwareStatus.Current -> {
+
+                        FirmwareSelectionRow(
+                            file = firmware.file,
+                            disposition = "Current",
+                            enabled = true,
+                            selected =
+                                selectedFirmware ===
+                                    firmware.file,
+                            onClick = {
+
+                                onSelect(
+                                    firmware.file
+                                )
+                            }
+                        )
+                    }
+
+                    is FirmwareStatus.Outdated -> {
+
+                        FirmwareSelectionRow(
+                            file = firmware.file,
+                            disposition = "Outdated",
+                            enabled = true,
+                            selected =
+                                selectedFirmware ===
+                                    firmware.file,
+                            onClick = {
+
+                                onSelect(
+                                    firmware.file
+                                )
+                            }
+                        )
+                    }
+
+                    is FirmwareStatus.Unknown -> {
+
+                        FirmwareSelectionRow(
+                            file = firmware.file,
+                            disposition = "Unknown",
+                            enabled = true,
+                            selected =
+                                selectedFirmware ===
+                                    firmware.file,
+                            onClick = {
+
+                                onSelect(
+                                    firmware.file
+                                )
+                            }
+                        )
+                    }
+
+                    is FirmwareStatus.Missing -> {
+
+                        FirmwareSelectionRow(
+                            filename = firmware.filename,
+                            disposition = "Missing",
+                            enabled = false,
+                            selected = false,
+                            onClick = {}
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.height(24.dp)
+        )
+
+        Button(
+            onClick = onBrowse
+        ) {
+            Text("Browse…")
+        }
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        OutlinedButton(
+            onClick = onBack
+        ) {
+            Text("Cancel")
+        }
+    }
+}
+
+@Composable
+private fun FirmwareSelectionRow(
+    file: FirmwareFile? = null,
+    filename: String? = null,
+    disposition: String,
+    enabled: Boolean,
+    selected: Boolean,
+    onClick: () -> Unit
+)
+{
+    val displayName =
+        file?.name
+            ?: filename
+            ?: return
+
+    val displaySize =
+        file?.size?.let {
+            " (${it} bytes)"
+        }
+            ?: ""
+
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(
+                    enabled = enabled,
+                    onClick = onClick
+                )
+                .padding(
+                    vertical = 12.dp
+                ),
+        verticalAlignment =
+            Alignment.CenterVertically
+    )
+    {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            enabled = enabled
+        )
+
+        Spacer(
+            modifier = Modifier.width(8.dp)
+        )
+
+        Column {
+            Text(
+                text = displayName
+            )
+
+            Text(
+                text = "$disposition$displaySize"
+            )
+        }
+    }
+}

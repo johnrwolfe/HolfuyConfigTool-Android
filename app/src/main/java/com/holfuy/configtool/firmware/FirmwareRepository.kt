@@ -182,9 +182,10 @@ class FirmwareRepository(
                     )
     
                     firmwareStatus +=
-                        FirmwareStatus(
-                            descriptor.filename,
-                            FirmwareDisposition.CURRENT
+                        FirmwareStatus.Current(
+                            storage.firmwareFile(
+                                file
+                            )
                         )
     
                 } catch (e: Exception) {
@@ -196,9 +197,8 @@ class FirmwareRepository(
                     )
     
                     firmwareStatus +=
-                        FirmwareStatus(
-                            descriptor.filename,
-                            FirmwareDisposition.MISSING
+                        FirmwareStatus.Missing(
+                            descriptor.filename
                         )
                 }
     
@@ -219,9 +219,10 @@ class FirmwareRepository(
                         )
     
                         firmwareStatus +=
-                            FirmwareStatus(
-                                descriptor.filename,
-                                FirmwareDisposition.CURRENT
+                            FirmwareStatus.Current(
+                                storage.firmwareFile(
+                                    existingFile
+                                )
                             )
     
                     } else {
@@ -256,9 +257,10 @@ class FirmwareRepository(
                             )
     
                             firmwareStatus +=
-                                FirmwareStatus(
-                                    descriptor.filename,
-                                    FirmwareDisposition.CURRENT
+                                FirmwareStatus.Current(
+                                    storage.firmwareFile(
+                                        file
+                                    )
                                 )
     
                         } catch (e: Exception) {
@@ -270,9 +272,10 @@ class FirmwareRepository(
                             )
     
                             firmwareStatus +=
-                                FirmwareStatus(
-                                    descriptor.filename,
-                                    FirmwareDisposition.OUTDATED
+                                FirmwareStatus.Outdated(
+                                    storage.firmwareFile(
+                                        existingFile
+                                    )
                                 )
                         }
                     }
@@ -310,9 +313,10 @@ class FirmwareRepository(
                         )
     
                         firmwareStatus +=
-                            FirmwareStatus(
-                                descriptor.filename,
-                                FirmwareDisposition.CURRENT
+                            FirmwareStatus.Current(
+                                storage.firmwareFile(
+                                    file
+                                )
                             )
     
                     } catch (downloadException: Exception) {
@@ -330,9 +334,10 @@ class FirmwareRepository(
                          * copy for purposes of refresh.
                          */
                         firmwareStatus +=
-                            FirmwareStatus(
-                                descriptor.filename,
-                                FirmwareDisposition.OUTDATED
+                            FirmwareStatus.Outdated(
+                                storage.firmwareFile(
+                                    existingFile
+                                )
                             )
                     }
                 }
@@ -345,22 +350,35 @@ class FirmwareRepository(
          */
         storage.listFiles()
             .filter { file ->
-                firmwareStatus.none {
-                    it.filename == file.name
+                firmwareStatus.none { status ->
+                    when (status) {
+                        is FirmwareStatus.Current ->
+                            status.file.name == file.name
+    
+                        is FirmwareStatus.Outdated ->
+                            status.file.name == file.name
+    
+                        is FirmwareStatus.Unknown ->
+                            status.file.name == file.name
+    
+                        is FirmwareStatus.Missing ->
+                            status.filename == file.name
+                    }
                 }
             }
             .forEach { file ->
     
                 firmwareStatus +=
-                    FirmwareStatus(
-                        file.name!!,
-                        FirmwareDisposition.UNKNOWN
+                    FirmwareStatus.Unknown(
+                        storage.firmwareFile(
+                            file
+                        )
                     )
             }
     
         return firmwareStatus
     }
-
+    
     private suspend fun download(
         descriptor: FirmwareDescriptor
     )

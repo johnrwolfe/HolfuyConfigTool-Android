@@ -99,6 +99,16 @@ class RepositoryStorage(
             )
     }
     
+    fun firmwareFile(
+        file: DocumentFile
+    ): FirmwareFile
+    {
+        return RepositoryFirmwareFile(
+            this,
+            file
+        )
+    }
+    
     fun openOutputStream(
         file: DocumentFile
     ): OutputStream

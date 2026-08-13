@@ -1,21 +1,29 @@
 package com.holfuy.configtool.ui.screens
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,7 +33,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import com.holfuy.configtool.BuildConfig
 import com.holfuy.configtool.device.DeviceState
-import com.holfuy.configtool.firmware.FirmwareDisposition
+import com.holfuy.configtool.firmware.FirmwareFile
+import com.holfuy.configtool.firmware.FirmwareStatus
 import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.MainUiState
 
@@ -131,23 +140,36 @@ fun MainScreen(
 
                     repositoryStatus.firmware.forEach { firmware ->
 
-                        Text(
-                            "${firmware.filename}: " +
-                                when (firmware.disposition) {
+                        when (firmware) {
 
-                                    FirmwareDisposition.CURRENT ->
-                                        "Current"
+                            is FirmwareStatus.Current -> {
 
-                                    FirmwareDisposition.OUTDATED ->
-                                        "Outdated"
+                                Text(
+                                    "${firmware.file.name}: Current"
+                                )
+                            }
 
-                                    FirmwareDisposition.MISSING ->
-                                        "Missing"
+                            is FirmwareStatus.Outdated -> {
 
-                                    FirmwareDisposition.UNKNOWN ->
-                                        "Unknown"
-                                }
-                        )
+                                Text(
+                                    "${firmware.file.name}: Outdated"
+                                )
+                            }
+
+                            is FirmwareStatus.Missing -> {
+
+                                Text(
+                                    "${firmware.filename}: Missing"
+                                )
+                            }
+
+                            is FirmwareStatus.Unknown -> {
+
+                                Text(
+                                    "${firmware.file.name}: Unknown"
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -173,12 +195,12 @@ fun MainScreen(
                 Text("Selected Firmware")
 
                 Text(
-                    uiState.firmwareFileName
+                    uiState.selectedFirmware?.name
                         ?: "No file selected"
                 )
 
-                uiState.firmwareSize?.let {
-                    Text("Size: $it bytes")
+                uiState.selectedFirmware?.let { firmware ->
+                    Text("Size: ${firmware.size} bytes")
                 }
             }
         }
@@ -225,7 +247,7 @@ fun MainScreen(
             enabled =
                 deviceState.connected &&
                 !deviceState.updateInProgress &&
-                uiState.firmwareFileName != null,
+                uiState.selectedFirmware != null,
             onClick = onUpdateFirmwareClick
         ) {
             Text("Update Firmware")
