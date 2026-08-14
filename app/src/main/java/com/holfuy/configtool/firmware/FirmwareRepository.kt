@@ -346,7 +346,7 @@ class FirmwareRepository(
     
         /*
          * Files in the repository that are not mentioned in the manifest
-         * are deliberately left untouched and are reported as UNKNOWN.
+         * are deliberately left untouched and are reported as CUSTOM.
          */
         storage.listFiles()
             .filter { file ->
@@ -358,7 +358,7 @@ class FirmwareRepository(
                         is FirmwareStatus.Outdated ->
                             status.file.name == file.name
     
-                        is FirmwareStatus.Unknown ->
+                        is FirmwareStatus.Custom ->
                             status.file.name == file.name
     
                         is FirmwareStatus.Missing ->
@@ -369,7 +369,7 @@ class FirmwareRepository(
             .forEach { file ->
     
                 firmwareStatus +=
-                    FirmwareStatus.Unknown(
+                    FirmwareStatus.Custom(
                         storage.firmwareFile(
                             file
                         )

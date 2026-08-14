@@ -10,7 +10,7 @@ sealed class FirmwareStatus
         val file: FirmwareFile
     ) : FirmwareStatus()
 
-    data class Unknown(
+    data class Custom(
         val file: FirmwareFile
     ) : FirmwareStatus()
 

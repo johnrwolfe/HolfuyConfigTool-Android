@@ -110,11 +110,11 @@ fun SelectFirmwareScreen(
                         )
                     }
 
-                    is FirmwareStatus.Unknown -> {
+                    is FirmwareStatus.Custom -> {
 
                         FirmwareSelectionRow(
                             file = firmware.file,
-                            disposition = "Unknown",
+                            disposition = "Custom",
                             enabled = true,
                             selected =
                                 selectedFirmwareSource ==
