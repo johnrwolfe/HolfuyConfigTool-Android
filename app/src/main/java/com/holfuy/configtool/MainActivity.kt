@@ -41,6 +41,7 @@ import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
 import com.holfuy.configtool.ui.screens.SelectFirmwareScreen
 import com.holfuy.configtool.ui.screens.RepositoryConfigurationScreen
+import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.theme.HolfuyConfigToolTheme
 import com.holfuy.configtool.ui.viewmodel.MainViewModel
 import com.holfuy.configtool.ui.viewmodel.MainViewModelFactory
@@ -400,57 +401,62 @@ class MainActivity : ComponentActivity()
     
         setContent {
             HolfuyConfigToolTheme {
-        
+    
                 val viewModel =
                     activityViewModel
-        
+    
                 var showHelp by rememberSaveable {
                     mutableStateOf(false)
                 }
-        
+    
                 var showFirmwareSelection by rememberSaveable {
                     mutableStateOf(false)
                 }
-        
+    
                 val firmwareFolderPicker =
                     rememberLauncherForActivityResult(
                         contract =
                             ActivityResultContracts.OpenDocumentTree()
                     ) { uri: Uri? ->
-        
+    
                         if (uri == null)
                             return@rememberLauncherForActivityResult
-        
+    
                         contentResolver.takePersistableUriPermission(
                             uri,
                             Intent.FLAG_GRANT_READ_URI_PERMISSION or
                                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                         )
-        
+    
                         viewModel.configureRepository(uri)
-        
+    
                         Log.i(
                             TAG,
                             "Firmware folder selected: $uri"
                         )
                     }
-        
+    
                 val firmwarePicker =
                     rememberLauncherForActivityResult(
                         contract =
                             ActivityResultContracts.GetContent()
                     ) { uri: Uri? ->
-        
+    
                         if (uri == null) {
+                            /*
+                             * Browse was cancelled. Remain on the
+                             * Select Firmware screen with the existing
+                             * selection unchanged.
+                             */
                             return@rememberLauncherForActivityResult
                         }
-        
+    
                         val fileName =
                             getDisplayName(
                                 contentResolver,
                                 uri
                             )
-        
+    
                         val fileSize =
                             contentResolver
                                 .openAssetFileDescriptor(
@@ -461,17 +467,17 @@ class MainActivity : ComponentActivity()
                                     descriptor.length
                                 }
                                 ?: -1L
-        
+    
                         if (fileSize < 0) {
-        
+    
                             Log.w(
                                 TAG,
                                 "Unable to determine size of selected firmware: $fileName"
                             )
-        
+    
                             return@rememberLauncherForActivityResult
                         }
-        
+    
                         val file =
                             UriFirmwareFile(
                                 context = this@MainActivity,
@@ -479,96 +485,96 @@ class MainActivity : ComponentActivity()
                                 name = fileName,
                                 size = fileSize
                             )
-        
+    
                         Log.i(
                             TAG,
                             "Selected firmware: ${file.name} (${file.size} bytes)"
                         )
-        
+    
                         viewModel.setFirmware(
-                            file
+                            file,
+                            FirmwareSelectionSource.BROWSE
                         )
-        
+    
                         showFirmwareSelection = false
                     }
-        
+    
                 val deviceState by
                     viewModel.deviceStateFlow.collectAsState()
-        
+    
                 if (viewModel.repositoryStatus.configuring) {
-        
+    
                     RepositoryConfigurationScreen(
                         onContinue = {
-        
+    
                             viewModel.endRepositoryConfiguration()
-        
+    
                             firmwareFolderPicker.launch(null)
                         }
                     )
-        
+    
                 } else if (showHelp) {
-        
+    
                     HelpScreen(
                         onBack = {
                             showHelp = false
                         }
                     )
-        
+    
                 } else if (showFirmwareSelection) {
-        
+    
                     SelectFirmwareScreen(
                         repositoryStatus =
                             viewModel.repositoryStatus,
-                    
+    
                         selectedFirmware =
                             viewModel.uiState.selectedFirmware,
-                    
+    
+                        selectedFirmwareSource =
+                            viewModel.uiState.selectedFirmwareSource,
+    
                         onSelect = { file ->
-                    
-                            viewModel.setFirmware(file)
-                    
+    
+                            viewModel.setFirmware(
+                                file,
+                                FirmwareSelectionSource.REPOSITORY
+                            )
+    
                             showFirmwareSelection = false
                         },
-                    
+    
                         onBrowse = {
-                    
-                            activityViewModel.clearTransientStatus()
-                    
-                            showFirmwareSelection = false
-                    
                             firmwarePicker.launch("*/*")
                         },
-                    
+    
                         onBack = {
-                    
                             showFirmwareSelection = false
                         }
                     )
-        
+    
                 } else {
-        
+    
                     MainScreen(
                         uiState = viewModel.uiState,
                         deviceState = deviceState,
-        
+    
                         onConnectClick =
                             ::connectOrRequestPermission,
-        
+    
                         onSelectFirmwareClick = {
-        
+    
                             activityViewModel.clearTransientStatus()
-        
+    
                             showFirmwareSelection = true
                         },
-        
+    
                         onUpdateFirmwareClick =
                             viewModel::updateFirmware,
-        
+    
                         onHelpClick = {
-        
                             showHelp = true
                         },
-        
+    
                         repositoryStatus =
                             viewModel.repositoryStatus
                     )

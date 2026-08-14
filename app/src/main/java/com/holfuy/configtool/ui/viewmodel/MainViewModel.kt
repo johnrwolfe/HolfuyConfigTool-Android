@@ -14,6 +14,7 @@ import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.firmware.FirmwareFile
 import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.firmware.RepositoryStatus
+import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.state.MainUiState
 
 class MainViewModel(
@@ -74,11 +75,13 @@ class MainViewModel(
     }
     
     fun setFirmware(
-        file: FirmwareFile
+        file: FirmwareFile,
+        source: FirmwareSelectionSource
     )
     {
         uiState = uiState.copy(
-            selectedFirmware = file
+            selectedFirmware = file,
+            selectedFirmwareSource = source
         )
     }
         

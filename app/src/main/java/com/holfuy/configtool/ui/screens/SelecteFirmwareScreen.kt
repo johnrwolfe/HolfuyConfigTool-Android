@@ -25,13 +25,15 @@ import androidx.compose.ui.unit.dp
 import com.holfuy.configtool.firmware.FirmwareFile
 import com.holfuy.configtool.firmware.FirmwareStatus
 import com.holfuy.configtool.firmware.RepositoryStatus
+import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 
 @Composable
 fun SelectFirmwareScreen(
     repositoryStatus: RepositoryStatus,
     selectedFirmware: FirmwareFile?,
+    selectedFirmwareSource: FirmwareSelectionSource?,
     onSelect: (FirmwareFile) -> Unit,
-    onBrowse: (() -> Unit),
+    onBrowse: () -> Unit,
     onBack: () -> Unit
 )
 {
@@ -75,8 +77,10 @@ fun SelectFirmwareScreen(
                             disposition = "Current",
                             enabled = true,
                             selected =
-                                selectedFirmware ===
-                                    firmware.file,
+                                selectedFirmwareSource ==
+                                    FirmwareSelectionSource.REPOSITORY &&
+                                selectedFirmware?.name ==
+                                    firmware.file.name,
                             onClick = {
 
                                 onSelect(
@@ -93,8 +97,10 @@ fun SelectFirmwareScreen(
                             disposition = "Outdated",
                             enabled = true,
                             selected =
-                                selectedFirmware ===
-                                    firmware.file,
+                                selectedFirmwareSource ==
+                                    FirmwareSelectionSource.REPOSITORY &&
+                                selectedFirmware?.name ==
+                                    firmware.file.name,
                             onClick = {
 
                                 onSelect(
@@ -111,8 +117,10 @@ fun SelectFirmwareScreen(
                             disposition = "Unknown",
                             enabled = true,
                             selected =
-                                selectedFirmware ===
-                                    firmware.file,
+                                selectedFirmwareSource ==
+                                    FirmwareSelectionSource.REPOSITORY &&
+                                selectedFirmware?.name ==
+                                    firmware.file.name,
                             onClick = {
 
                                 onSelect(
