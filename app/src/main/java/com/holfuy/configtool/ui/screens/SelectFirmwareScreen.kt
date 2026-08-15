@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.holfuy.configtool.firmware.FirmwareFile
 import com.holfuy.configtool.firmware.FirmwareStatus
@@ -32,7 +34,7 @@ fun SelectFirmwareScreen(
     repositoryStatus: RepositoryStatus,
     selectedFirmware: FirmwareFile?,
     selectedFirmwareSource: FirmwareSelectionSource?,
-    onSelect: (FirmwareFile) -> Unit,
+    onSelect: (FirmwareFile, String?) -> Unit,
     onBrowse: () -> Unit,
     onBack: () -> Unit
 )
@@ -51,7 +53,9 @@ fun SelectFirmwareScreen(
     )
     {
         Text(
-            text = "Select Firmware"
+            text = "Select Firmware",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
         )
 
         Spacer(
@@ -75,6 +79,7 @@ fun SelectFirmwareScreen(
                         FirmwareSelectionRow(
                             file = firmware.file,
                             disposition = "Current",
+                            modem = firmware.modem,
                             enabled = true,
                             selected =
                                 selectedFirmwareSource ==
@@ -84,7 +89,8 @@ fun SelectFirmwareScreen(
                             onClick = {
 
                                 onSelect(
-                                    firmware.file
+                                    firmware.file,
+                                    firmware.modem
                                 )
                             }
                         )
@@ -95,6 +101,7 @@ fun SelectFirmwareScreen(
                         FirmwareSelectionRow(
                             file = firmware.file,
                             disposition = "Outdated",
+                            modem = firmware.modem,
                             enabled = true,
                             selected =
                                 selectedFirmwareSource ==
@@ -104,7 +111,8 @@ fun SelectFirmwareScreen(
                             onClick = {
 
                                 onSelect(
-                                    firmware.file
+                                    firmware.file,
+                                    firmware.modem
                                 )
                             }
                         )
@@ -115,6 +123,7 @@ fun SelectFirmwareScreen(
                         FirmwareSelectionRow(
                             file = firmware.file,
                             disposition = "Custom",
+                            modem = null,
                             enabled = true,
                             selected =
                                 selectedFirmwareSource ==
@@ -124,7 +133,8 @@ fun SelectFirmwareScreen(
                             onClick = {
 
                                 onSelect(
-                                    firmware.file
+                                    firmware.file,
+                                    null
                                 )
                             }
                         )
@@ -135,6 +145,7 @@ fun SelectFirmwareScreen(
                         FirmwareSelectionRow(
                             filename = firmware.filename,
                             disposition = "Missing",
+                            modem = firmware.modem,
                             enabled = false,
                             selected = false,
                             onClick = {}
@@ -171,6 +182,7 @@ private fun FirmwareSelectionRow(
     file: FirmwareFile? = null,
     filename: String? = null,
     disposition: String,
+    modem: String? = null,
     enabled: Boolean,
     selected: Boolean,
     onClick: () -> Unit
@@ -180,12 +192,6 @@ private fun FirmwareSelectionRow(
         file?.name
             ?: filename
             ?: return
-
-    val displaySize =
-        file?.size?.let {
-            " (${it} bytes)"
-        }
-            ?: ""
 
     Row(
         modifier =
@@ -213,12 +219,25 @@ private fun FirmwareSelectionRow(
         )
 
         Column {
-            Text(
-                text = displayName
-            )
+
+            modem?.let {
+                Text(
+                    text = "Modem: $it"
+                )
+            }
 
             Text(
-                text = "$disposition$displaySize"
+                text = "Filename: $displayName"
+            )
+
+            file?.let {
+                Text(
+                    text = "Size: ${it.size} bytes"
+                )
+            }
+
+            Text(
+                text = disposition
             )
         }
     }

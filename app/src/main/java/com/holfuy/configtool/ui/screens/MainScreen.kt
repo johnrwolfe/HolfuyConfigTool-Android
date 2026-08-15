@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.ZoneId
@@ -88,7 +89,11 @@ fun MainScreen(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                Text("Selected Firmware")
+                Text(
+                    text = "Selected Firmware",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
 
                 val selectedFirmware =
                     uiState.selectedFirmware
@@ -99,25 +104,26 @@ fun MainScreen(
 
                 } else {
 
+                    selectedFirmware.modem?.let { modem ->
+                        Text("Modem: $modem")
+                    }
+
                     Text(
-                        selectedFirmware.name
+                        "Filename: ${selectedFirmware.file.name}"
                     )
 
                     Text(
-                        "Size: ${selectedFirmware.size} bytes"
+                        "Size: ${selectedFirmware.file.size} bytes"
                     )
 
                     if (
-                        uiState.selectedFirmwareSource ==
+                        selectedFirmware.source ==
                             FirmwareSelectionSource.BROWSE
                     ) {
 
                         Text("Custom")
 
-                    } else if (
-                        uiState.selectedFirmwareSource ==
-                            FirmwareSelectionSource.REPOSITORY
-                    ) {
+                    } else {
 
                         val disposition =
                             repositoryStatus.firmware
@@ -127,15 +133,15 @@ fun MainScreen(
 
                                         is FirmwareStatus.Current ->
                                             firmware.file.name ==
-                                                selectedFirmware.name
+                                                selectedFirmware.file.name
 
                                         is FirmwareStatus.Outdated ->
                                             firmware.file.name ==
-                                                selectedFirmware.name
+                                                selectedFirmware.file.name
 
                                         is FirmwareStatus.Custom ->
                                             firmware.file.name ==
-                                                selectedFirmware.name
+                                                selectedFirmware.file.name
 
                                         is FirmwareStatus.Missing ->
                                             false
@@ -145,17 +151,14 @@ fun MainScreen(
                         when (disposition) {
 
                             is FirmwareStatus.Current -> {
-
                                 Text("Current")
                             }
 
                             is FirmwareStatus.Outdated -> {
-
                                 Text("Outdated")
                             }
 
                             is FirmwareStatus.Custom -> {
-
                                 Text("Custom")
                             }
 
@@ -164,7 +167,6 @@ fun MainScreen(
                             }
 
                             null -> {
-
                                 Text("Custom")
                             }
                         }
@@ -200,7 +202,7 @@ fun MainScreen(
                                     lastSuccessfullyChecked == null ||
                                         lastCheckFailed >
                                         lastSuccessfullyChecked
-                                    )
+                                )
                             ) {
 
                                 Text(

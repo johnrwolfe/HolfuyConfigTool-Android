@@ -8,10 +8,15 @@ enum class FirmwareSelectionSource
     BROWSE
 }
 
+data class SelectedFirmware(
+    val file: FirmwareFile,
+    val source: FirmwareSelectionSource,
+    val modem: String? = null
+)
+
 data class MainUiState(
     val connecting: Boolean = false,
-    val selectedFirmware: FirmwareFile? = null,
-    val selectedFirmwareSource: FirmwareSelectionSource? = null,
+    val selectedFirmware: SelectedFirmware? = null,
     val errorMessage: String? = null,
     val updateCompleted: Boolean = false
 )

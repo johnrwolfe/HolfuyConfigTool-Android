@@ -183,9 +183,12 @@ class FirmwareRepository(
     
                     firmwareStatus +=
                         FirmwareStatus.Current(
-                            storage.firmwareFile(
-                                file
-                            )
+                            file =
+                                storage.firmwareFile(
+                                    file
+                                ),
+                            modem =
+                                descriptor.modem
                         )
     
                 } catch (e: Exception) {
@@ -198,7 +201,10 @@ class FirmwareRepository(
     
                     firmwareStatus +=
                         FirmwareStatus.Missing(
-                            descriptor.filename
+                            filename =
+                                descriptor.filename,
+                            modem =
+                                descriptor.modem
                         )
                 }
     
@@ -220,9 +226,12 @@ class FirmwareRepository(
     
                         firmwareStatus +=
                             FirmwareStatus.Current(
-                                storage.firmwareFile(
-                                    existingFile
-                                )
+                                file =
+                                    storage.firmwareFile(
+                                        existingFile
+                                    ),
+                                modem =
+                                    descriptor.modem
                             )
     
                     } else {
@@ -258,9 +267,12 @@ class FirmwareRepository(
     
                             firmwareStatus +=
                                 FirmwareStatus.Current(
-                                    storage.firmwareFile(
-                                        file
-                                    )
+                                    file =
+                                        storage.firmwareFile(
+                                            file
+                                        ),
+                                    modem =
+                                        descriptor.modem
                                 )
     
                         } catch (e: Exception) {
@@ -273,9 +285,12 @@ class FirmwareRepository(
     
                             firmwareStatus +=
                                 FirmwareStatus.Outdated(
-                                    storage.firmwareFile(
-                                        existingFile
-                                    )
+                                    file =
+                                        storage.firmwareFile(
+                                            existingFile
+                                        ),
+                                    modem =
+                                        descriptor.modem
                                 )
                         }
                     }
@@ -314,9 +329,12 @@ class FirmwareRepository(
     
                         firmwareStatus +=
                             FirmwareStatus.Current(
-                                storage.firmwareFile(
-                                    file
-                                )
+                                file =
+                                    storage.firmwareFile(
+                                        file
+                                    ),
+                                modem =
+                                    descriptor.modem
                             )
     
                     } catch (downloadException: Exception) {
@@ -335,9 +353,12 @@ class FirmwareRepository(
                          */
                         firmwareStatus +=
                             FirmwareStatus.Outdated(
-                                storage.firmwareFile(
-                                    existingFile
-                                )
+                                file =
+                                    storage.firmwareFile(
+                                        existingFile
+                                    ),
+                                modem =
+                                    descriptor.modem
                             )
                     }
                 }

@@ -522,31 +522,32 @@ class MainActivity : ComponentActivity()
                     )
     
                 } else if (showFirmwareSelection) {
-    
+                
                     SelectFirmwareScreen(
                         repositoryStatus =
                             viewModel.repositoryStatus,
-    
+                
                         selectedFirmware =
-                            viewModel.uiState.selectedFirmware,
-    
+                            viewModel.uiState.selectedFirmware?.file,
+                        
                         selectedFirmwareSource =
-                            viewModel.uiState.selectedFirmwareSource,
-    
-                        onSelect = { file ->
-    
+                            viewModel.uiState.selectedFirmware?.source,
+                        
+                        onSelect = { file, modem ->
+                        
                             viewModel.setFirmware(
                                 file,
-                                FirmwareSelectionSource.REPOSITORY
+                                FirmwareSelectionSource.REPOSITORY,
+                                modem
                             )
-    
+                        
                             showFirmwareSelection = false
                         },
-    
+                
                         onBrowse = {
                             firmwarePicker.launch("*/*")
                         },
-    
+                
                         onBack = {
                             showFirmwareSelection = false
                         }
