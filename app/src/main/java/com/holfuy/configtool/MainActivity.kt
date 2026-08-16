@@ -32,8 +32,10 @@ import kotlinx.coroutines.launch
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
+import com.holfuy.configtool.firmware.FIRMWARE_EXTENSION
 import com.holfuy.configtool.firmware.FirmwareFile
 import com.holfuy.configtool.firmware.FirmwareRepository
+import com.holfuy.configtool.firmware.MAX_FIRMWARE_SIZE
 import com.holfuy.configtool.firmware.ManifestConfiguration
 import com.holfuy.configtool.firmware.RepositoryStorage
 import com.holfuy.configtool.firmware.UriFirmwareFile
@@ -441,7 +443,7 @@ class MainActivity : ComponentActivity()
                         contract =
                             ActivityResultContracts.GetContent()
                     ) { uri: Uri? ->
-    
+                
                         if (uri == null) {
                             /*
                              * Browse was cancelled. Remain on the
@@ -450,13 +452,13 @@ class MainActivity : ComponentActivity()
                              */
                             return@rememberLauncherForActivityResult
                         }
-    
+                
                         val fileName =
                             getDisplayName(
                                 contentResolver,
                                 uri
                             )
-    
+                
                         val fileSize =
                             contentResolver
                                 .openAssetFileDescriptor(
@@ -467,17 +469,53 @@ class MainActivity : ComponentActivity()
                                     descriptor.length
                                 }
                                 ?: -1L
-    
+                
                         if (fileSize < 0) {
-    
+                
                             Log.w(
                                 TAG,
                                 "Unable to determine size of selected firmware: $fileName"
                             )
-    
+                
                             return@rememberLauncherForActivityResult
                         }
-    
+                
+                        if (
+                            fileSize > MAX_FIRMWARE_SIZE ||
+                            !fileName.endsWith(
+                                FIRMWARE_EXTENSION,
+                                ignoreCase = true
+                            )
+                        ) {
+                        
+                            Log.w(
+                                TAG,
+                                "Rejected firmware selection: $fileName ($fileSize bytes)"
+                            )
+                        
+                            val reason =
+                                when {
+                                    fileSize > MAX_FIRMWARE_SIZE &&
+                                        !fileName.endsWith(
+                                            FIRMWARE_EXTENSION,
+                                            ignoreCase = true
+                                        ) ->
+                                        "The selected file must be a .bin file no larger than 200 kB."
+                        
+                                    fileSize > MAX_FIRMWARE_SIZE ->
+                                        "The selected file is too large. Firmware files must be no larger than 200 kB."
+                        
+                                    else ->
+                                        "The selected file is not a .bin firmware file."
+                                }
+                        
+                            viewModel.setFirmwareSelectionError(
+                                reason
+                            )
+                        
+                            return@rememberLauncherForActivityResult
+                        }
+                
                         val file =
                             UriFirmwareFile(
                                 context = this@MainActivity,
@@ -485,20 +523,20 @@ class MainActivity : ComponentActivity()
                                 name = fileName,
                                 size = fileSize
                             )
-    
+                
                         Log.i(
                             TAG,
                             "Selected firmware: ${file.name} (${file.size} bytes)"
                         )
-    
+                
                         viewModel.setFirmware(
                             file,
                             FirmwareSelectionSource.BROWSE
                         )
-    
+                
                         showFirmwareSelection = false
-                    }
-    
+                    }    
+                    
                 val deviceState by
                     viewModel.deviceStateFlow.collectAsState()
     
@@ -529,6 +567,9 @@ class MainActivity : ComponentActivity()
                 
                         selectedFirmware =
                             viewModel.uiState.selectedFirmware?.file,
+                         
+                        firmwareSelectionError =
+                            viewModel.uiState.firmwareSelectionError,
                         
                         selectedFirmwareSource =
                             viewModel.uiState.selectedFirmware?.source,
@@ -545,6 +586,7 @@ class MainActivity : ComponentActivity()
                         },
                 
                         onBrowse = {
+                            viewModel.clearFirmwareSelectionError()
                             firmwarePicker.launch("*/*")
                         },
                 

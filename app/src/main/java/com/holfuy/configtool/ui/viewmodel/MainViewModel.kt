@@ -76,6 +76,22 @@ class MainViewModel(
             )
         }
     }
+    
+    fun setFirmwareSelectionError(
+        message: String
+    )
+    {
+        uiState = uiState.copy(
+            firmwareSelectionError = message
+        )
+    }
+    
+    fun clearFirmwareSelectionError()
+    {
+        uiState = uiState.copy(
+            firmwareSelectionError = null
+        )
+    }
 
     fun setFirmware(
         file: FirmwareFile,

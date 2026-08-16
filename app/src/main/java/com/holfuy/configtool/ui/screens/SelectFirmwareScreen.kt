@@ -24,15 +24,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.holfuy.configtool.firmware.FIRMWARE_EXTENSION
 import com.holfuy.configtool.firmware.FirmwareFile
 import com.holfuy.configtool.firmware.FirmwareStatus
+import com.holfuy.configtool.firmware.MAX_FIRMWARE_SIZE
 import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.FirmwareSelectionSource
+
+private fun isSelectable(
+    firmware: FirmwareStatus
+): Boolean
+{
+    val file =
+        when (firmware) {
+            is FirmwareStatus.Current -> firmware.file
+            is FirmwareStatus.Outdated -> firmware.file
+            is FirmwareStatus.Custom -> firmware.file
+            is FirmwareStatus.Missing -> return false
+        }
+
+    return file.size <= MAX_FIRMWARE_SIZE &&
+        file.name.endsWith(
+            FIRMWARE_EXTENSION,
+            ignoreCase = true
+        )
+}
 
 @Composable
 fun SelectFirmwareScreen(
     repositoryStatus: RepositoryStatus,
     selectedFirmware: FirmwareFile?,
+    firmwareSelectionError: String?,
     selectedFirmwareSource: FirmwareSelectionSource?,
     onSelect: (FirmwareFile, String?) -> Unit,
     onBrowse: () -> Unit,
@@ -61,8 +83,24 @@ fun SelectFirmwareScreen(
         Spacer(
             modifier = Modifier.height(16.dp)
         )
+        
+        firmwareSelectionError?.let { message ->
+        
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.Medium
+            )
+        
+            Spacer(
+                modifier = Modifier.height(12.dp)
+            )
+        }
 
-        if (repositoryStatus.firmware.isEmpty()) {
+        val selectableFirmware =
+            repositoryStatus.firmware.filter(::isSelectable)
+
+        if (selectableFirmware.isEmpty()) {
 
             Text(
                 "No firmware files are available in the repository."
@@ -70,7 +108,7 @@ fun SelectFirmwareScreen(
 
         } else {
 
-            repositoryStatus.firmware.forEach { firmware ->
+            selectableFirmware.forEach { firmware ->
 
                 when (firmware) {
 
@@ -141,15 +179,7 @@ fun SelectFirmwareScreen(
                     }
 
                     is FirmwareStatus.Missing -> {
-
-                        FirmwareSelectionRow(
-                            filename = firmware.filename,
-                            disposition = "Missing",
-                            modem = firmware.modem,
-                            enabled = false,
-                            selected = false,
-                            onClick = {}
-                        )
+                        // Missing files are not selectable.
                     }
                 }
             }
