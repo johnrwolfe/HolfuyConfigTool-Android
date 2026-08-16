@@ -3,8 +3,8 @@
 To use this tool, you will need:
 
 * An Android phone or tablet with USB OTG (On-The-Go) capability.  OTG enables a phone or tablet to act as a host computer when connected to a weather station.
-* A [USB OTG adapter](https://www.amazon.com/dp/B09SZ5NHF4?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1&th=1) if your device does not have native USB host capability available through its connector.
-* A USB cable with a Micro-B connector for the Holfuy station and a connector compatible with your Android device (USB-A or USB-C).
+* A USB OTG adapter if your device does not have native USB host capability available through its connector.
+* A USB cable with a USB-C connector for the Holfuy station (or micro-B connector for V5.X and older main board) and a connector compatible with your Android device (USB-A or USB-C).
 
 ## Preparation
 
@@ -14,14 +14,7 @@ While your Android device has an Internet connection, follow the relevant proced
 
 1. Open the app.
 1. Follow the instructions to configure the firmware repository.
-1. Wait for the firmware repository to be populated (this should take only a few seconds).
-1. Confirm that the firmware repository contains the firmware file required for your weather station.
-
-### Subsequent use
-
-1. Open the app.
-1. Wait for the firmware repository to be refreshed (this should take only a few seconds).
-1. Confirm that the firmware repository contains a current version of the firmware file required for your weather station.
+1. Wait 10 seconds for the firmware repository to be populated.
 
 ## Firmware Update Procedure
 
@@ -65,9 +58,9 @@ After each successful check of the repository, the disposition of each file in t
 - Current:  The file in the repository is the most recent one provided by Holfuy.
 - Outdated:  The file in the repository was Current when it was downloaded, but a newer one is available from Holfuy but was not successfully downloaded.
 - Missing:  Holfuy supplies this file, but it is not present in the repository and was not successfully downloaded during the most recent attempt.
-- Unknown:  The file exists in the repository, but it is not one Holfuy supplies to general users.
+- Custom:  The file exists in the repository, but it is not one Holfuy supplies to general users.
 
-Since the app attempts to update the repository every time it is opened, any file marked as **Outdated** or **Missing** should be replaced with
+Since the app attempts to update the repository every time it is opened, any file marked as **Outdated** or **Missing** will be replaced with
 a **Current** version whenever the app is opened when the Android device has an Internet connection.
 
 ## Troubleshooting Firmware Update
