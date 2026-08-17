@@ -89,11 +89,7 @@ fun MainScreen(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                Text(
-                    text = "Selected Firmware",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("Selected Firmware")
 
                 val selectedFirmware =
                     uiState.selectedFirmware
@@ -104,12 +100,8 @@ fun MainScreen(
 
                 } else {
 
-                    selectedFirmware.modem?.let { modem ->
-                        Text("Modem: $modem")
-                    }
-
                     Text(
-                        "Filename: ${selectedFirmware.file.name}"
+                        selectedFirmware.file.name
                     )
 
                     Text(
@@ -202,7 +194,7 @@ fun MainScreen(
                                     lastSuccessfullyChecked == null ||
                                         lastCheckFailed >
                                         lastSuccessfullyChecked
-                                )
+                                    )
                             ) {
 
                                 Text(
@@ -213,6 +205,10 @@ fun MainScreen(
                                 )
                             }
                         }
+                    }
+
+                    selectedFirmware.modem?.let { modem ->
+                        Text("Modem: $modem")
                     }
                 }
             }
@@ -305,6 +301,31 @@ fun MainScreen(
 
                         Text(
                             "${deviceState.updateProgress}%"
+                        )
+                    }
+
+                    uiState.firmwareUpdateInterrupted -> {
+
+                        Text(
+                            "Device disconnected",
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(4.dp)
+                        )
+
+                        Text(
+                            "Firmware update interrupted. " +
+                                "The station's existing firmware is unaffected."
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(4.dp)
+                        )
+
+                        Text(
+                            "See the User Guide for recovery instructions."
                         )
                     }
 

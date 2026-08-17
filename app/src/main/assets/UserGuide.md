@@ -65,6 +65,8 @@ a **Current** version whenever the app is opened when the Android device has an 
 
 ## Troubleshooting Firmware Update
 
+### Connection issues
+
 First, ensure the station is connected through a USB OTG-capable connection.
 Some Android devices with native OTG capability require a change in the settings to enable OTG.
 
@@ -90,5 +92,12 @@ simplest thing to try is:
 Verify that:
 
 * The selected firmware file is intended for your station.
-* The USB cable is securely connected.
-* The station remains connected to the Android device throughout the update process.
+
+If the firmware update is interrupted, execute these steps:
+
+1. Turn off the station.
+1. Disconnect the USB cable from the Android device.
+1. Disconnect the USB cable from the station.
+1. Connect the USB cable to the Android device.
+1. Connect the USB cable to the station.
+1. Continue with the Firmware Update Procedure specified above, starting with turning on the station.

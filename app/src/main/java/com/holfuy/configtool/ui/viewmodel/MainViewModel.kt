@@ -177,7 +177,8 @@ class MainViewModel(
                 )
 
                 uiState = uiState.copy(
-                    updateCompleted = false
+                    updateCompleted = false,
+                    firmwareUpdateInterrupted = false
                 )
 
                 val bytes =
@@ -237,10 +238,26 @@ class MainViewModel(
         }
     }
 
+    fun firmwareUpdateInterrupted()
+    {
+        uiState = uiState.copy(
+            firmwareUpdateInterrupted = true,
+            updateCompleted = false
+        )
+    }
+    
+    fun clearFirmwareUpdateInterrupted()
+    {
+        uiState = uiState.copy(
+            firmwareUpdateInterrupted = false
+        )
+    }
+    
     fun clearTransientStatus()
     {
         uiState = uiState.copy(
-            updateCompleted = false
+            updateCompleted = false,
+            firmwareUpdateInterrupted = false
         )
     }
 }

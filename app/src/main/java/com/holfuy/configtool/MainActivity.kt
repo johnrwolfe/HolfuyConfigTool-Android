@@ -304,6 +304,8 @@ class MainActivity : ComponentActivity()
                 )
     
                 refreshUsbState()
+                
+                activityViewModel.clearFirmwareUpdateInterrupted()
             }
         }
     
@@ -329,12 +331,23 @@ class MainActivity : ComponentActivity()
                     TAG,
                     "Supported USB device detached"
                 )
-                
+    
+                val updateInProgress =
+                    DeviceRepository.state.updateInProgress
+    
                 holfuyDevice.onUsbDetached()
     
+                if (updateInProgress) {
+    
+                    activityViewModel.firmwareUpdateInterrupted()
+                }
+    
                 DeviceRepository.clearConnectionState()
-                
-                activityViewModel.clearTransientStatus()
+    
+                if (!updateInProgress) {
+    
+                    activityViewModel.clearTransientStatus()
+                }
             }
         }
     
