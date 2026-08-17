@@ -317,7 +317,7 @@ fun MainScreen(
 
                         Text(
                             "Firmware update interrupted. " +
-                                "The station's existing firmware is unaffected."
+                                "Please restart the firmware upgrade process."
                         )
 
                         Spacer(
@@ -325,7 +325,7 @@ fun MainScreen(
                         )
 
                         Text(
-                            "See the User Guide for recovery instructions."
+                            "If it won't work after several tries please contact Holfuy Support."
                         )
                     }
 
