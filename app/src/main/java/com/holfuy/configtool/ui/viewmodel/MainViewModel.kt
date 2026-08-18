@@ -7,8 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.firmware.FirmwareFile
@@ -17,6 +15,8 @@ import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.state.MainUiState
 import com.holfuy.configtool.ui.state.SelectedFirmware
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val holfuyDevice: HolfuyDevice,
@@ -42,14 +42,6 @@ class MainViewModel(
         firmwareRepository.configure(
             rootUri
         )
-    }
-
-    fun refreshRepository()
-    {
-        viewModelScope.launch {
-
-            firmwareRepository.refresh()
-        }
     }
 
     fun endRepositoryConfiguration()

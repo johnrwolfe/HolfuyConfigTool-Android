@@ -20,20 +20,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.coroutines.launch
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
 import com.holfuy.configtool.firmware.FIRMWARE_EXTENSION
-import com.holfuy.configtool.firmware.FirmwareFile
 import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.firmware.MAX_FIRMWARE_SIZE
 import com.holfuy.configtool.firmware.ManifestConfiguration
@@ -41,8 +35,8 @@ import com.holfuy.configtool.firmware.RepositoryStorage
 import com.holfuy.configtool.firmware.UriFirmwareFile
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
-import com.holfuy.configtool.ui.screens.SelectFirmwareScreen
 import com.holfuy.configtool.ui.screens.RepositoryConfigurationScreen
+import com.holfuy.configtool.ui.screens.SelectFirmwareScreen
 import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.theme.HolfuyConfigToolTheme
 import com.holfuy.configtool.ui.viewmodel.MainViewModel
@@ -67,7 +61,6 @@ class MainActivity : ComponentActivity()
     private lateinit var usbManager: UsbManager
     private lateinit var holfuyDevice: HolfuyDevice
     private lateinit var usbDeviceProvider: UsbDeviceProvider
-    private var browseCompletion: (() -> Unit)? = null
     
     private fun getDisplayName(
         contentResolver: ContentResolver,

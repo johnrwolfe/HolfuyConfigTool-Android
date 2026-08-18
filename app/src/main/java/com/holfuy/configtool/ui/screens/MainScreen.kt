@@ -20,16 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import com.holfuy.configtool.BuildConfig
 import com.holfuy.configtool.device.DeviceState
 import com.holfuy.configtool.firmware.FirmwareStatus
 import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.state.MainUiState
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 private val SECTION_SPACING = 24.dp
 
