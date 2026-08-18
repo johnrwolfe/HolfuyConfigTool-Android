@@ -166,6 +166,13 @@ Unscripted testing intended to discover previously unknown defects.
 
 Exploratory testing supplements, but never replaces, the scripted test suite.
 
+## Historical
+
+A test case retained because it was executed in a previous release cycle 
+but which no longer applies to the current application behavior. 
+Historical test cases are not included in current release test requirements 
+unless explicitly reinstated.
+
 ---
 
 # Maintaining the Test Suite

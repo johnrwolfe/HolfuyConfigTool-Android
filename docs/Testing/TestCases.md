@@ -30,15 +30,9 @@ Each test case consists of the following sections.
 
 # Reference Workflows
 
-## WF-001 — Update Firmware (Application running before station power-on)
+## WF-001 — Update Firmware
 
-**Preconditions**
-
-- Supported Android device with USB Debugging disabled
-- Holfuy weather station
-- USB OTG connection available
-- Known-good firmware image available
-- Station powered off
+This is the normal firmware update workflow described in the User Guide.
 
 **Procedure**
 
@@ -46,7 +40,7 @@ Execute the firmware update procedure exactly as described in the User Guide.
 
 **Expected Results**
 
-- Firmware file is successfully selected.
+- A firmware image can be selected before connecting to the weather station.
 - USB permission is granted.
 - Connection succeeds.
 - Firmware update completes successfully.
@@ -55,66 +49,79 @@ Execute the firmware update procedure exactly as described in the User Guide.
 - No crash or "Application Not Responding" (ANR) occurs.
 - The station boots the newly installed firmware.
 
-## WF-002 — Update Firmware (Application launched after station power-on)
+---
 
-**Preconditions**
+## WF-003 — Configure Firmware Repository
 
-- Supported Android device
-- Holfuy weather station
-- USB OTG connection available
-- Known-good firmware image available
-- Station powered off
+This workflow is executed during the first invocation of the app after
+installation, when no firmware repository directory has yet been configured.
 
 **Procedure**
 
-Execute the firmware update procedure as described in the User Guide except
-start the application after the station has been powered on.
+1. Launch the app.
+2. When prompted, select a directory to contain the firmware repository.
+3. If necessary, create the selected directory.
+4. Complete the repository configuration.
+
+The application suggests `Download/HolfuyFirmware` as the repository location,
+but the user may select any directory permitted by the Android framework.
 
 **Expected Results**
 
-- Firmware file is successfully selected.
-- USB permission is granted.
-- Connection succeeds.
-- Firmware update completes successfully.
-- Progress indication reaches completion.
-- Application remains responsive.
-- No crash or "Application Not Responding" (ANR) occurs.
-- The station boots the newly installed firmware.
+- The firmware repository directory is configured successfully.
+- The application proceeds to normal operation.
+- The repository configuration is retained for subsequent application use.
+- The user is not required to configure the repository again on subsequent
+  application invocations.
+
+The repository configuration is expected to survive upgrades of the app.
 
 ---
 
 # Application Session States
 
-`Fresh`:  A newly installed application or one that has been stopped, either by 
-Android or the user via `Force Stop` and consequently has no firmware selected.
+Application Session State identifies the persistent state of Holfuy Upgrader
+when a test begins.
 
-`Persistent`: An application that has been used successfully in the past and 
-retains a non-empty firmware selection.
+| State | Definition |
+|-------|------------|
+| Fresh | The application has been newly installed, or has been stopped with its application data cleared. No firmware selection is retained and the firmware repository has not yet been configured. |
+| Persistent | The application has previously been used and retains its configured firmware repository and, if one was previously selected, its firmware selection. |
 
 ## Default Assumptions
 
-Unless otherwise specified, a test case may be executed with either
-Application Session state.
+Unless otherwise specified, a test may begin in either Application Session State.
 
 A test case specifies an Application Session state only when the expected
 behavior differs between the `Fresh` and `Persistent` states.
+
+Where the retained firmware selection affects the behavior being tested, the
+required Application Session State is specified explicitly as a precondition.
 
 ---
 
 # Interruption Points
 
-Interruption Points identify locations within the nominal workflow where one or
-more variations may be introduced.
+Interruption Points identify locations within the reference workflows where one
+or more Variation Specifications may be introduced.
 
-| ID | Description |
-|----|-------------|
-| IP-1 | Station powered on and connected via USB to Android device, before tapping **Connect** |
-| IP-2 | Waiting for USB permission |
-| IP-3 | Connected to weather station |
-| IP-4 | Android file picker displayed |
-| IP-5 | Firmware selected |
-| IP-6 | Firmware update in progress |
-| IP-7 | Firmware update completed |
+Each Interruption Point has a unique identifier across all reference workflows.
+The numbering does not imply ordering or equivalence between workflows.
+
+| ID | Workflow | Description |
+|----|----------|-------------|
+| IP-1 | WF-001 | Firmware selection available, before opening Select Firmware |
+| IP-2 | WF-001 | Select Firmware screen displayed |
+| IP-3 | WF-001 | Firmware selected, before connecting the weather station |
+| IP-4 | WF-001 | Station powered on and connected via USB to Android device, before tapping **Connect** |
+| IP-5 | WF-001 | Waiting for USB permission |
+| IP-6 | WF-001 | Connected to weather station |
+| IP-7 | WF-001 | Firmware update in progress |
+| IP-8 | WF-001 | Firmware update completed |
+| IP-9 | WF-003 | Repository configuration instructions displayed |
+| IP-10 | WF-003 | Repository directory picker displayed |
+| IP-11 | WF-003 | Repository directory selected, before completing configuration |
+| IP-12 | WF-003 | Repository configuration completed |
 
 ---
 
@@ -235,7 +242,7 @@ Expected behavioral property:
 
 ---
 
-# TC-001 — Update Firmware (Nominal)
+## TC-001 — Update Firmware (Nominal)
 
 **Reference Workflow:** WF-001
 
@@ -261,7 +268,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression
 
-**Variation:** IP-2: Deny USB permission.
+**Variation:** IP-5: Deny USB permission.
 
 **Expected Results**
 
@@ -277,7 +284,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression
 
-**Variation:** IP-2: VS-STATION-LOST
+**Variation:** IP-5: VS-STATION-LOST
 
 **Expected Results**
 
@@ -294,7 +301,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression
 
-**Variation:** IP-4: VS-FW-CANCEL
+**Variation:** IP-2: VS-FW-CANCEL
 
 **Expected Results**
 
@@ -310,7 +317,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression
 
-**Variation:** IP-5: VS-FW-REPLACE
+**Variation:** IP-3: VS-FW-REPLACE
 
 **Expected Results**
 
@@ -326,7 +333,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression
 
-**Variation:** IP-6: VS-STATION-LOST
+**Variation:** IP-7: VS-STATION-LOST
 
 **Expected Results**
 
@@ -353,7 +360,7 @@ Each test case below specifies expected results in addition to these:
 
 - Attach an unsupported USB device.
 
-**Variation:** IP-1: VS-USB-UNSUPPORTED
+**Variation:** IP-4: VS-USB-UNSUPPORTED
 
 **Expected Results**
 
@@ -369,7 +376,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-2: VS-LIFE
+**Variation:** IP-5: VS-LIFE
 
 **Expected Results**
 
@@ -386,7 +393,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-6: VS-LIFE
+**Variation:** IP-7: VS-LIFE
 
 **Expected Results**
 
@@ -403,11 +410,9 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression
 
-**Preconditions**
+**Application Session:** Persistent
 
-- Application Session: Persistent
-
-**Variation:** IP-3: Do not select a firmware image.
+**Variation:** IP-3: Retain the existing firmware selection.
 
 **Expected Results**
 
@@ -416,11 +421,11 @@ Each test case below specifies expected results in addition to these:
 
 ---
 
-# TC-011 — Update Firmware (Alternative)
+## TC-011 — Update Firmware (Alternative)
 
 **Reference Workflow:** WF-002
 
-**Classification:** Smoke, Regression, Compatibility
+**Classification:** Historical
 
 **Preconditions**
 
@@ -434,7 +439,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-3: VS-STATION-LOST
+**Variation:** IP-6: VS-STATION-LOST
 
 **Expected Results**
 
@@ -446,20 +451,19 @@ Each test case below specifies expected results in addition to these:
 
 ---
 
-## TC-013 — Android Lifecycle Interruption During Document Picker
+## TC-013 — Android Lifecycle Interruption on Select Firmware Screen
 
 **Reference Workflow:** WF-001
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-4: VS-LIFE
+**Variation:** IP-2: VS-LIFE
 
 **Expected Results**
 
-- Android document picker behaves according to normal Android conventions.
-- Application resumes in a consistent state following representative Android lifecycle events.
-- Canceling the document picker leaves the previously selected firmware selection unchanged.
-- Selecting a firmware file returns to the application and enables firmware update as expected.
+- Application resumes in an equivalent state.
+- Firmware selection can continue normally.
+- Firmware update can be completed successfully.
 
 ---
 
@@ -469,7 +473,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression
 
-**Variation:** IP-7: VS-STATION-LOST
+**Variation:** IP-8: VS-STATION-LOST
 
 **Expected Results**
 
@@ -483,7 +487,7 @@ Each test case below specifies expected results in addition to these:
 
 **Reference Workflow:** WF-001
 
-**Classification:** Regression
+**Classification:** Historical
 
 **Variation:** IP-7: VS-FW-REPLACE
 
@@ -499,7 +503,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-1, 3, 5, 6, 7: VS-HELP
+**Variation:** IP-1, 3, 4, 6, 7, 8, 12: VS-HELP
 
 **Expected Results**
 
