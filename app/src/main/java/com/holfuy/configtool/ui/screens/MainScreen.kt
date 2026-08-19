@@ -329,6 +329,22 @@ fun MainScreen(
                         )
                     }
 
+                    uiState.firmwareUpdateError != null -> {
+
+                        Text(
+                            "Firmware update failed",
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(4.dp)
+                        )
+
+                        Text(
+                            uiState.firmwareUpdateError
+                        )
+                    }
+
                     uiState.updateCompleted -> {
 
                         Text(

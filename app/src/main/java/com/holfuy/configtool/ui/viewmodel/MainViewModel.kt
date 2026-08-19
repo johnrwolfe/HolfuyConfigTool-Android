@@ -147,81 +147,104 @@ class MainViewModel(
         val selectedFirmware =
             uiState.selectedFirmware
                 ?: return
-
+    
         val firmware =
             selectedFirmware.file
-
+    
         viewModelScope.launch(Dispatchers.IO) {
-
+    
             try {
-
+    
                 Log.d(
                     TAG,
                     "updateFirmware() called"
                 )
-
+    
                 DeviceRepository.setUpdateInProgress(
                     true
                 )
-
+    
                 DeviceRepository.setUpdateProgress(
                     0
                 )
-
+    
                 uiState = uiState.copy(
                     updateCompleted = false,
-                    firmwareUpdateInterrupted = false
+                    firmwareUpdateInterrupted = false,
+                    firmwareUpdateError = null
                 )
-
+    
                 val bytes =
-                    firmware
-                        .openInputStream()
-                        .use { input ->
-                            input.readBytes()
-                        }
-
+                    try {
+    
+                        firmware
+                            .openInputStream()
+                            .use { input ->
+                                input.readBytes()
+                            }
+    
+                    } catch (e: Exception) {
+    
+                        Log.e(
+                            TAG,
+                            "Unable to load firmware: ${firmware.name}",
+                            e
+                        )
+    
+                        uiState = uiState.copy(
+                            firmwareUpdateError =
+                                "Unable to open the selected firmware file. " +
+                                "The file may have been removed from the repository."
+                        )
+    
+                        return@launch
+                    }
+    
                 Log.i(
                     TAG,
                     "Loaded firmware: ${firmware.name} (${bytes.size} bytes)"
                 )
-
+    
                 val success =
                     holfuyDevice.updateFirmware(
                         bytes
                     ) { progress ->
-
+    
                         DeviceRepository.setUpdateProgress(
                             progress
                         )
                     }
-
+    
                 uiState = uiState.copy(
                     updateCompleted = success
                 )
-
+    
                 Log.i(
                     TAG,
                     "updateFirmware success=$success"
                 )
             }
             catch (e: Exception) {
-
+    
                 Log.e(
                     TAG,
                     "Firmware update failed",
                     e
                 )
-
+    
                 uiState = uiState.copy(
-                    errorMessage = e.message
+                    firmwareUpdateError =
+                        "Firmware update failed. " +
+                        "The station's application firmware may be corrupted. " +
+                        "See the User Guide for recovery instructions."
                 )
             }
             finally {
-
+    
                 DeviceRepository.setUpdateInProgress(
                     false
                 )
-
+    
                 Log.d(
                     TAG,
                     "DeviceRepository state=${DeviceRepository.state}"
@@ -229,7 +252,6 @@ class MainViewModel(
             }
         }
     }
-
     fun firmwareUpdateInterrupted()
     {
         uiState = uiState.copy(
