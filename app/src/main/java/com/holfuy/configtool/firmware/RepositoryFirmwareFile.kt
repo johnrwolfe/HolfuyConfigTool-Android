@@ -8,12 +8,12 @@ class RepositoryFirmwareFile(
     private val documentFile: DocumentFile
 ) : FirmwareFile
 {
-    override val name: String
-        get() = documentFile.name
+    override val name: String =
+        documentFile.name
             ?: error("Repository file has no name.")
 
-    override val size: Long
-        get() = documentFile.length()
+    override val size: Long =
+        documentFile.length()
 
     override fun openInputStream(): InputStream
     {
