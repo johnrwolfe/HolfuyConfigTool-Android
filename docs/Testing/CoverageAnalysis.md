@@ -154,23 +154,6 @@ must then be opened by tapping Help again.
 
 ---
 
-### Firmware Selection Paths
-
-The Select Firmware screen provides two distinct selection paths:
-
-* Select a firmware file from the configured repository.
-* Tap **Browse** and select a firmware file using the Android document picker.
-
-These paths are treated as variations of IP-2 rather than separate
-Interruption Points.
-
-| Variation                                         | Coverage |
-| ------------------------------------------------- | -------- |
-| Select firmware from repository                   | TBD      |
-| Browse for firmware using Android document picker | TBD      |
-
-The repository may contain both automatically downloaded firmware and custom
-firmware files placed there by the user.
 
 | Repository Content         | Coverage |
 | -------------------------- | -------- |
@@ -181,9 +164,26 @@ firmware files placed there by the user.
 
 ## USB Permission
 
-| Interruption Point |  IP-5  |
-| ------------------ | :----: |
-| Coverage           | TC-002 |
+| Interruption Point | IP-5 |
+|--------------------|:---:|
+| Coverage | TC-002 |
+
+**Rationale**
+
+The Android USB permission dialog presents several ways to decline or dismiss
+the permission request. Explicitly tapping **Deny**, tapping **Back**, tapping
+**Home** or **Recents**, or tapping the dialog's **Cancel** button all leave
+the application without USB permission and with **Connect** enabled. These
+actions therefore represent one behavioral class.
+
+TC-002 covers explicit denial. The dismissal actions are additional executions
+of TC-002 rather than separate test cases.
+
+Android lifecycle interruption while the permission dialog is displayed is
+covered separately by TC-008.
+
+If the station exits ISP mode while permission is pending, the resulting USB
+device removal is covered by TC-003.
 
 ---
 
@@ -207,68 +207,43 @@ state. The user must power-cycle the station to restart the workflow.
 
 ## Unsupported USB Device
 
-| Interruption Point |  IP-1  |
-| ------------------ | :----: |
-| Coverage           | TC-007 |
+| Interruption Point | IP-1 |
+|--------------------|:---:|
+| Coverage | TC-007 |
+
+**Rationale**
+
+An unsupported USB device is recognized and ignored. The application remains
+responsive, and the firmware-update workflow remains unavailable.
+
+No additional interruption points or behavioral variations are introduced by
+the current application changes, so TC-007 provides sufficient coverage.
 
 ---
 
 # WF-003 — Firmware Repository Configuration
 
-## Android Lifecycle
+| Interruption Point              |   IP-9  |    IP-10   |
+| ------------------------------- | :-----: | :--------: |
+| Android Lifecycle               | =TC-009 |   TC-020   |
+| Configure Repository            |    N    |   TC-018   |
+| Cancel Repository Configuration |    N    |   TC-019   |
 
-The repository configuration workflow includes application-controlled UI at IP-9
-and an Android-managed directory picker at IP-10.
 
-| Interruption Point | IP-9 | IP-10 |
-| ------------------ | :--: | :---: |
-| Coverage           |  TBD |  TBD  |
+Rationale
 
-**Rationale**
+IP-9 is application-controlled and is covered by the existing lifecycle test.
+IP-10 is Android-controlled and is covered by the existing document-picker 
+lifecycle test.
 
-Lifecycle behavior at IP-9 is application-controlled and should be analyzed
-separately from the Android directory picker at IP-10.
+Selecting a permitted directory is the canonical repository-configuration test.
+Because the application imposes no additional constraints on the directory 
+selected by Android, different permitted directories do not represent distinct
+behavioral cases.
 
-The directory picker permits navigation through the Android filesystem,
-directory creation, and selection of a usable directory. Pressing Back can
-return to IP-9 without completing repository configuration.
-
----
-
-## Repository Directory Selection
-
-Representative actions at IP-10 include:
-
-* Navigate between directories.
-* Create a directory.
-* Select a directory that cannot yet be used.
-* Navigate to a directory that can be used.
-* Tap **Use This Folder**.
-* Press Back to abandon the selection.
-
-| Variation                         | Coverage |
-| --------------------------------- | -------- |
-| Navigate directories              | TBD      |
-| Create repository directory       | TBD      |
-| Select usable existing directory  | TBD      |
-| Select newly created directory    | TBD      |
-| Complete repository configuration | TBD      |
-| Back / cancel directory selection | TBD      |
-
----
-
-## Repository Configuration
-
-The repository configuration is performed during the Fresh application session.
-After successful configuration, the application returns to IP-1.
-
-| Application Session | Coverage |
-| ------------------- | -------- |
-| Fresh               | TBD      |
-| Persistent          | N        |
-
-A Persistent session already has a configured repository and therefore does not
-normally enter WF-003.
+Cancelling the directory picker is tested separately because it returns the 
+application to the repository-configuration screen rather than completing the 
+workflow.
 
 ---
 

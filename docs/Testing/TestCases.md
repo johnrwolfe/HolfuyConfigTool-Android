@@ -533,3 +533,50 @@ Each test case below specifies expected results in addition to these:
 **Expected Results**
 
 - Application satisfies the VS-FW-BROWSE-SELECT expected behavioral property.
+
+---
+
+## TC-018 — Configure Firmware Repository
+
+**Reference Workflow:** WF-003
+
+**Classification:** Regression, Compatibility
+
+**Variation:** IP-9: Configure the firmware repository.
+
+**Expected Results**
+
+- Application satisfies the repository configuration expected behavioral property.
+
+---
+
+## TC-019 — Cancel Firmware Repository Configuration
+
+**Reference Workflow:** WF-003
+
+**Classification:** Regression, Compatibility
+
+**Variation:** IP-10: Cancel repository directory selection.
+
+**Expected Results**
+
+- Application returns to the firmware repository configuration screen.
+- Repository configuration remains incomplete.
+
+---
+
+## TC-020 — Android Lifecycle Interruption During Repository Directory Selection
+
+**Reference Workflow:** WF-003
+
+**Classification:** Regression, Compatibility
+
+**Variation:** IP-10: VS-LIFE
+
+**Expected Results**
+
+- Application resumes in an equivalent state.
+- Repository directory selection can continue normally.
+- Repository configuration can be completed successfully.
+
+---
