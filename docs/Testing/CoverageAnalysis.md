@@ -17,8 +17,9 @@ canonical test.
 
 This analysis applies to:
 
-- Workflow: WF-001
-- Application Session: Either, unless otherwise specified.
+* Workflow: WF-001
+* Workflow: WF-003
+* Application Session: Either, unless otherwise specified.
 
 Additional workflows and application session states should be analyzed separately
 as the application evolves.
@@ -31,37 +32,43 @@ Each behavioral variation is analyzed independently.
 
 Matrix entries use the following notation.
 
-| Entry | Meaning |
-|-------|---------|
-| TC-nnn | Canonical test exercising this behavior |
-| =TC-nnn | Behavior equivalent to TC-nnn |
-| N | Not meaningful |
-| TBD | Analysis not yet complete |
+| Entry   | Meaning                                 |
+| ------- | --------------------------------------- |
+| TC-nnn  | Canonical test exercising this behavior |
+| =TC-nnn | Behavior equivalent to TC-nnn           |
+| N       | Not meaningful                          |
+| TBD     | Analysis not yet complete               |
+
+Matrices show only Interruption Points at which the behavioral variation is
+meaningful. Columns containing only `N` are omitted.
 
 ---
+
+# WF-001 — Firmware Update
 
 ## Unexpected Station Loss
 
 Representative actions:
 
-- Disconnect USB cable.
-- Power off weather station.
-- Allow bootloader timeout to expire.
+* Disconnect USB cable.
+* Power off weather station.
+* Allow bootloader timeout to expire.
 
 Behavioral property:
 
-The weather station unexpectedly becomes unavailable while the firmware update workflow
-is in progress.
+The weather station unexpectedly becomes unavailable while the firmware update
+workflow is in progress.
 
-| Interruption Point | IP-1 | IP-2 | IP-3 | IP-4 | IP-5 | IP-6 | IP-7 |
-|--------------------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Coverage | =TC-012 | =TC-012 | =TC-012 | =TC-012 | =TC-012 | TC-006 | N |
+| Interruption Point |   IP-4  |   IP-5  |   IP-6  |  IP-7  |
+| ------------------ | :-----: | :-----: | :-----: | :----: |
+| Coverage           | =TC-012 | =TC-012 | =TC-012 | TC-006 |
 
 **Rationale**
 
-Prior to firmware programming, all causes of unexpected station loss produce
-the same observable application behavior. Android reports USB device removal,
-the application transitions to the disconnected state, and the workflow may be
+Prior to firmware programming, disconnecting the USB cable, powering off the
+station, and allowing the bootloader timeout to expire produce the same
+observable application behavior. Android reports USB device removal, the
+application transitions to the disconnected state, and the workflow may be
 restarted after the station is restored.
 
 Firmware programming is analyzed separately because interruption during flash
@@ -73,26 +80,51 @@ programming has unique consequences.
 
 Representative actions:
 
-- Rotate device.
-- Home / Resume.
-- Recents / Resume.
-- Lock / Unlock.
-- Screen timeout.
-- Back.
+* Rotate device.
+* Home / Resume.
+* Recents / Resume.
+* Lock / Unlock.
+* Screen timeout.
+* Back.
 
-| Interruption Point | IP-1 | IP-2 | IP-3 | IP-4 | IP-5 | IP-6 | IP-7 |
-|--------------------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Coverage | =TC-009 | TC-008 | =TC-009 | TC-013 | =TC-009 | TC-009 | =TC-009 |
+| Interruption Point |   IP-1  |  IP-2  |   IP-3  |   IP-4  |  IP-5  |  IP-6  |   IP-7  |   IP-8  | IP-9 | IP-10 |
+| ------------------ | :-----: | :----: | :-----: | :-----: | :----: | :----: | :-----: | :-----: | :--: | :---: |
+| Coverage           | =TC-009 | TC-013 | =TC-009 | =TC-009 | TC-008 | TC-009 | =TC-009 | =TC-009 |  TBD |  TBD  |
 
 **Rationale**
 
-Interruption points are grouped according to which component owns the active user interface.
-This grouping avoids redundant testing while ensuring that each distinct lifecycle owner is exercised.
-When Holfuy Upgrader owns the UI (IPs 1, 3, 5, 6, and 7), Android lifecycle events are handled
-uniformly by the application and are therefore covered by TC-009.
+Interruption points are grouped according to which component owns the active
+user interface.
 
-Waiting for USB permission (IP-2) and interacting with the Android document picker (IP-4) involve
-externally managed UI with distinct lifecycle and navigation behavior, requiring separate canonical tests.
+IPs 1, 3, 4, 6, 7, and 8 are application-controlled UI states and are therefore
+covered by TC-009.
+
+IP-2 is the application-controlled Select Firmware screen and is covered by
+TC-013.
+
+IP-5 is the Android USB permission dialog and is covered by TC-008.
+
+IP-9 is the application-controlled Repository Configuration screen, while
+IP-10 is the Android-controlled directory picker. These are distinct lifecycle
+contexts and require additional coverage.
+
+---
+
+## Help
+
+| Interruption Point |  IP-1  |  IP-3  |  IP-4  |  IP-6  |  IP-7  |  IP-8  |
+| ------------------ | :----: | :----: | :----: | :----: | :----: | :----: |
+| Coverage           | TC-016 | TC-016 | TC-016 | TC-016 | TC-016 | TC-016 |
+
+**Rationale**
+
+Help is available from the application-controlled states represented by these
+Interruption Points. TC-016 is the canonical test for the VS-HELP variation and
+explicitly exercises all applicable IPs.
+
+Help is not directly available from the Android USB permission dialog at IP-5.
+Tapping Help at that point dismisses the permission request; the Help screen
+must then be opened by tapping Help again.
 
 ---
 
@@ -100,38 +132,243 @@ externally managed UI with distinct lifecycle and navigation behavior, requiring
 
 ### Cancel Firmware Selection
 
-| Interruption Point | IP-1 | IP-2 | IP-3 | IP-4 | IP-5 | IP-6 | IP-7 |
-|--------------------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Coverage | N | N | N | TC-004 | N | N | N |
+| Interruption Point |  IP-2  |
+| ------------------ | :----: |
+| Coverage           | TC-004 |
 
 ---
 
 ### Replace Firmware Selection
 
-| Interruption Point | IP-1 | IP-2 | IP-3 | IP-4 | IP-5 | IP-6 | IP-7 |
-|--------------------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Coverage | N | N | N | N | TC-005 | N | N |
+| Interruption Point |  IP-3  |   IP-4  |   IP-6  |
+| ------------------ | :----: | :-----: | :-----: |
+| Coverage           | TC-005 | =TC-005 | =TC-005 |
+
+---
+
+### Firmware Selection Paths
+
+The Select Firmware screen provides two distinct selection paths:
+
+* Select a firmware file from the configured repository.
+* Tap **Browse** and select a firmware file using the Android document picker.
+
+These paths are treated as variations of IP-2 rather than separate
+Interruption Points.
+
+| Variation                                         | Coverage |
+| ------------------------------------------------- | -------- |
+| Select firmware from repository                   | TBD      |
+| Browse for firmware using Android document picker | TBD      |
+
+The repository may contain both automatically downloaded firmware and custom
+firmware files placed there by the user.
+
+| Repository Content         | Coverage |
+| -------------------------- | -------- |
+| Manifest-provided firmware | TBD      |
+| Custom repository firmware | TBD      |
 
 ---
 
 ## USB Permission
 
-| Interruption Point | IP-1 | IP-2 | IP-3 | IP-4 | IP-5 | IP-6 | IP-7 |
-|--------------------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Coverage | N | TC-002 | N | N | N | N | N |
+| Interruption Point |  IP-5  |
+| ------------------ | :----: |
+| Coverage           | TC-002 |
+
+---
+
+## Bootloader Timeout
+
+The station bootloader timeout can occur while the station is in ISP mode and
+there has been insufficient activity on the USB connection.
+
+| Interruption Point |  IP-4  | IP-5 | IP-6 | IP-8 |
+| ------------------ | :----: | :--: | :--: | :--: |
+| Coverage           | TC-003 |  TBD |  TBD |  TBD |
+
+**Rationale**
+
+When the bootloader timeout occurs, the station exits ISP mode and drops the
+USB connection. Android reports the USB detachment to the application. The app
+updates its state, disables the Connect button, and displays the disconnected
+state. The user must power-cycle the station to restart the workflow.
+
+The timeout is meaningful at IP-4, IP-5, and IP-6 while the station is in ISP
+mode. IP-7 represents firmware programming and IP-8 represents completion of
+the update; timeout behavior at IP-8 requires further analysis because the
+station's expected post-update behavior is not yet fully established.
 
 ---
 
 ## Unsupported USB Device
 
-| Interruption Point | IP-1 | IP-2 | IP-3 | IP-4 | IP-5 | IP-6 | IP-7 |
-|--------------------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Coverage | TC-007 | N | N | N | N | N | N |
+| Interruption Point |  IP-1  |
+| ------------------ | :----: |
+| Coverage           | TC-007 |
 
 ---
 
-## Help
+# WF-003 — Firmware Repository Configuration
 
-| Interruption Point | IP-1 | IP-2 | IP-3 | IP-4 | IP-5 | IP-6 | IP-7 |
-|--------------------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Coverage | TC-016 | N | =TC-016 | N | =TC-016 | =TC-016 | =TC-016 |
+## Android Lifecycle
+
+The repository configuration workflow includes application-controlled UI at IP-9
+and an Android-managed directory picker at IP-10.
+
+| Interruption Point | IP-9 | IP-10 |
+| ------------------ | :--: | :---: |
+| Coverage           |  TBD |  TBD  |
+
+**Rationale**
+
+Lifecycle behavior at IP-9 is application-controlled and should be analyzed
+separately from the Android directory picker at IP-10.
+
+The directory picker permits navigation through the Android filesystem,
+directory creation, and selection of a usable directory. Pressing Back can
+return to IP-9 without completing repository configuration.
+
+---
+
+## Repository Directory Selection
+
+Representative actions at IP-10 include:
+
+* Navigate between directories.
+* Create a directory.
+* Select a directory that cannot yet be used.
+* Navigate to a directory that can be used.
+* Tap **Use This Folder**.
+* Press Back to abandon the selection.
+
+| Variation                         | Coverage |
+| --------------------------------- | -------- |
+| Navigate directories              | TBD      |
+| Create repository directory       | TBD      |
+| Select usable existing directory  | TBD      |
+| Select newly created directory    | TBD      |
+| Complete repository configuration | TBD      |
+| Back / cancel directory selection | TBD      |
+
+---
+
+## Repository Configuration
+
+The repository configuration is performed during the Fresh application session.
+After successful configuration, the application returns to IP-1.
+
+| Application Session | Coverage |
+| ------------------- | -------- |
+| Fresh               | TBD      |
+| Persistent          | N        |
+
+A Persistent session already has a configured repository and therefore does not
+normally enter WF-003.
+
+---
+
+# Firmware Repository Synchronization
+
+Whenever the application is opened, it attempts to retrieve the manifest and
+download the latest firmware files identified by the manifest.
+
+Failure to retrieve firmware files must not prevent normal operation using
+firmware already present in the repository.
+
+## Manifest Retrieval
+
+| Behavior                                                  | Coverage |
+| --------------------------------------------------------- | -------- |
+| Manifest successfully retrieved                           | TBD      |
+| Manifest retrieval fails                                  | TBD      |
+| Existing repository remains usable after manifest failure | TBD      |
+
+---
+
+## Firmware Download
+
+| Behavior                                                   | Coverage |
+| ---------------------------------------------------------- | -------- |
+| Latest firmware file downloads successfully                | TBD      |
+| Individual firmware download fails                         | TBD      |
+| Existing firmware remains available after download failure | TBD      |
+| Downloaded firmware becomes available for selection        | TBD      |
+
+---
+
+## Manifest-Defined Modem Types
+
+The manifest is the interface between the application and Holfuy's firmware
+repository. The application uses the `path` attribute to locate firmware files.
+
+| Behavior                                                  | Coverage |
+| --------------------------------------------------------- | -------- |
+| Multiple modem types listed in manifest                   | TBD      |
+| Each listed firmware file is downloaded                   | TBD      |
+| New modem type can be added without an application update | TBD      |
+| Malformed or unexpected manifest content                  | TBD      |
+
+---
+
+## Repository Contents
+
+The repository can contain both firmware downloaded by the application and
+custom firmware files placed there by the user.
+
+| Behavior                                                       | Coverage |
+| -------------------------------------------------------------- | -------- |
+| Automatically downloaded firmware is retained                  | TBD      |
+| Custom firmware is retained                                    | TBD      |
+| Both types appear in Select Firmware                           | TBD      |
+| Existing firmware remains usable after synchronization failure | TBD      |
+
+---
+
+# Application Session State
+
+The following session states are relevant to the coverage analysis.
+
+| State      | Description                                                                                        |
+| ---------- | -------------------------------------------------------------------------------------------------- |
+| Fresh      | Newly installed application or application stopped with data cleared; no firmware selection exists |
+| Persistent | Previously used application retaining its firmware selection and repository configuration          |
+
+Unless otherwise specified, either session state is acceptable for a test.
+
+The Fresh/Persistent distinction is particularly relevant to:
+
+* Firmware selection.
+* Repository configuration.
+* Repository synchronization.
+* Persistence of firmware selections.
+
+| Behavioral Area          | Fresh | Persistent |
+| ------------------------ | :---: | :--------: |
+| Firmware selection       |  TBD  |     TBD    |
+| Repository configuration |  TBD  |      N     |
+| Manifest synchronization |  TBD  |     TBD    |
+| Repository contents      |  TBD  |     TBD    |
+
+---
+
+# Coverage Gaps
+
+The following areas currently require additional analysis or test cases.
+
+1. Lifecycle behavior at IP-9 and within the Android directory picker at IP-10.
+2. Repository directory navigation, creation, selection, and cancellation.
+3. Repository configuration during a Fresh session.
+4. Firmware selection from the repository.
+5. Firmware selection through **Browse** and the Android document picker.
+6. Selection of automatically downloaded versus custom repository firmware.
+7. Bootloader timeout coverage at the remaining meaningful WF-001 IPs.
+8. Manifest retrieval success and failure.
+9. Firmware download success and failure.
+10. Continued operation using existing firmware after synchronization failure.
+11. Manifest support for multiple modem types and future modem types.
+12. Interaction between Fresh/Persistent application sessions and repository
+    synchronization.
+13. Any additional behavioral differences revealed while defining the new
+    repository and download test cases.

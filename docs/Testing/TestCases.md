@@ -120,8 +120,6 @@ The numbering does not imply ordering or equivalence between workflows.
 | IP-8 | WF-001 | Firmware update completed |
 | IP-9 | WF-003 | Repository configuration instructions displayed |
 | IP-10 | WF-003 | Repository directory picker displayed |
-| IP-11 | WF-003 | Repository directory selected, before completing configuration |
-| IP-12 | WF-003 | Repository configuration completed |
 
 ---
 
