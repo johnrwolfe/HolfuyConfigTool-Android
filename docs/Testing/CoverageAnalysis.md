@@ -138,11 +138,19 @@ must then be opened by tapping Help again.
 
 ---
 
-### Replace Firmware Selection
+### Select Repository-Resident Firmware
 
-| Interruption Point |  IP-3  |   IP-4  |   IP-6  |
-| ------------------ | :----: | :-----: | :-----: |
-| Coverage           | TC-005 | =TC-005 | =TC-005 |
+| Interruption Point |  IP-2  |   IP-3  |   IP-4  |  IP-6  |
+| ------------------ | :----: | :-----: | :-----: | :----: |
+| Coverage           | TC-005 | =TC-005 | =TC-005 | TC-005 |
+
+---
+
+### Select Firmware via Browse
+
+| Interruption Point |  IP-2  |   IP-3  |   IP-4  |  IP-6  |
+| ------------------ | :----: | :-----: | :-----: | :----: |
+| Coverage           | TC-017 | =TC-017 | =TC-017 | TC-017 |
 
 ---
 
@@ -184,9 +192,9 @@ firmware files placed there by the user.
 The station bootloader timeout can occur while the station is in ISP mode and
 there has been insufficient activity on the USB connection.
 
-| Interruption Point |  IP-4  | IP-5 | IP-6 | IP-8 |
-| ------------------ | :----: | :--: | :--: | :--: |
-| Coverage           | TC-003 |  TBD |  TBD |  TBD |
+| Interruption Point |  IP-4  |  IP-5  |  IP-6   |  IP-8   |
+| ------------------ | :----: | :----: | :-----: | :-----: |
+| Coverage           | TC-003 | TC-003 | =TC-003 | =TC-003 |
 
 **Rationale**
 
@@ -194,11 +202,6 @@ When the bootloader timeout occurs, the station exits ISP mode and drops the
 USB connection. Android reports the USB detachment to the application. The app
 updates its state, disables the Connect button, and displays the disconnected
 state. The user must power-cycle the station to restart the workflow.
-
-The timeout is meaningful at IP-4, IP-5, and IP-6 while the station is in ISP
-mode. IP-7 represents firmware programming and IP-8 represents completion of
-the update; timeout behavior at IP-8 requires further analysis because the
-station's expected post-update behavior is not yet fully established.
 
 ---
 

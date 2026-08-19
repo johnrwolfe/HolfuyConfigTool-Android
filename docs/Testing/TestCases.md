@@ -214,14 +214,28 @@ Expected behavioral property:
 
 ---
 
-### VS-FW-REPLACE
+### VS-FW-REPO-SELECT
 
-Replace the currently selected firmware image.
+Select a firmware file from the repository's firmware list.
 
 Expected behavioral property:
 
-* The previous firmware selection is replaced.
+- The selected repository firmware becomes the active firmware selection.
+- If a firmware selection already exists, it is replaced by the newly selected
+  repository firmware.
 
+---
+
+### VS-FW-BROWSE-SELECT
+
+Select a firmware file using **Browse** and the Android document picker.
+
+Expected behavioral property:
+
+- The selected firmware becomes the active firmware selection.
+- If a firmware selection already exists, it is replaced by the newly selected
+  firmware.
+  
 ---
 
 ### VS-HELP
@@ -276,20 +290,21 @@ Each test case below specifies expected results in addition to these:
 
 ---
 
-## TC-003 — Bootloader Timeout While Waiting for USB Permission
+## TC-003 — Bootloader Timeout
 
 **Reference Workflow:** WF-001
 
 **Classification:** Regression
 
-**Variation:** IP-5: VS-STATION-LOST
+**Variation:** IP-4, IP-5: VS-STATION-LOST
 
 **Expected Results**
 
+* Station exits ISP mode after bootloader timeout.
 * Android reports USB device removal.
 * The application indicates that the weather station is no longer connected.
 * No error dialog is displayed.
-* The user may restore the weather station and restart the firmware update procedure.
+* The user can restore the station and continue the workflow as appropriate to the interruption point.
 
 ---
 
@@ -309,19 +324,17 @@ Each test case below specifies expected results in addition to these:
 
 ---
 
-## TC-005 — Replace Selected Firmware
+## TC-005 — Select Repository-Resident Firmware
 
 **Reference Workflow:** WF-001
 
-**Classification:** Regression
+**Classification:** Regression, Compatibility
 
-**Variation:** IP-3: VS-FW-REPLACE
+**Variation:** IP-2, IP-6: VS-FW-REPO-SELECT
 
 **Expected Results**
 
-- Previous firmware selection is replaced.
-- Newly selected firmware becomes the active selection.
-- Firmware Update remains enabled.
+- Application satisfies the VS-FW-REPO-SELECT expected behavioral property.
 
 ---
 
@@ -501,8 +514,22 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-1, 3, 4, 6, 7, 8, 12: VS-HELP
+**Variation:** IP-1, 3, 4, 6, 7, 8: VS-HELP
 
 **Expected Results**
 
 - Application satisfies the VS-HELP expected behavioral property.
+
+---
+
+## TC-017 — Select Firmware via Browse
+
+**Reference Workflow:** WF-001
+
+**Classification:** Regression, Compatibility
+
+**Variation:** IP-2, IP-6: VS-FW-BROWSE-SELECT
+
+**Expected Results**
+
+- Application satisfies the VS-FW-BROWSE-SELECT expected behavioral property.
