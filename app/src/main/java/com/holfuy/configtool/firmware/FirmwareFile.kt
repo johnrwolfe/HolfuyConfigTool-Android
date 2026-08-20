@@ -10,5 +10,13 @@ interface FirmwareFile
     val name: String
     val size: Long
 
+    /**
+     * Returns whether the underlying file currently exists.
+     *
+     * name and size are immutable snapshots; exists() queries
+     * the current state of the underlying storage.
+     */
+    fun exists(): Boolean
+
     fun openInputStream(): InputStream
 }

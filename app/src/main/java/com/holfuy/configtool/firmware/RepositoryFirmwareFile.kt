@@ -15,6 +15,11 @@ class RepositoryFirmwareFile(
     override val size: Long =
         documentFile.length()
 
+    override fun exists(): Boolean
+    {
+        return storage.find(name) != null
+    }
+
     override fun openInputStream(): InputStream
     {
         return storage.openInputStream(

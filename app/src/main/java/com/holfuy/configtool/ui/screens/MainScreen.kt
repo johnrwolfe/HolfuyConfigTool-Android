@@ -68,7 +68,7 @@ fun MainScreen(
 
             selectedFirmware.source ==
                 FirmwareSelectionSource.BROWSE ->
-                true
+                uiState.selectedFirmwareAvailable
 
             else ->
                 selectedRepositoryDisposition != null &&
@@ -142,7 +142,14 @@ fun MainScreen(
                             FirmwareSelectionSource.BROWSE
                     ) {
 
-                        Text("Custom")
+                        Text(
+                            if (
+                                uiState.selectedFirmwareAvailable
+                            )
+                                "Custom"
+                            else
+                                "Missing"
+                        )
 
                     } else {
 
@@ -309,50 +316,32 @@ fun MainScreen(
                         )
                     }
 
+                    uiState.updateCompleted -> {
+
+                        Text(
+                            "Firmware update completed successfully."
+                        )
+                    }
+
                     uiState.firmwareUpdateInterrupted -> {
 
                         Text(
-                            "Device disconnected",
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(
-                            modifier = Modifier.height(4.dp)
-                        )
-
-                        Text(
-                            "Firmware update interrupted. " +
-                                "Please restart the firmware upgrade process."
-                        )
-
-                        Spacer(
-                            modifier = Modifier.height(4.dp)
-                        )
-
-                        Text(
-                            "If it won't work after several tries please contact Holfuy Support."
+                            "Firmware update interrupted."
                         )
                     }
 
                     uiState.firmwareUpdateError != null -> {
 
                         Text(
-                            uiState.firmwareUpdateError!!,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    uiState.updateCompleted -> {
-
-                        Text(
-                            "Firmware update complete"
+                            uiState.firmwareUpdateError
+                                ?: ""
                         )
                     }
 
                     else -> {
 
-                        Spacer(
-                            modifier = Modifier.height(20.dp)
+                        Text(
+                            "No update in progress."
                         )
                     }
                 }
@@ -365,8 +354,8 @@ fun MainScreen(
 
         Text(
             text = "Version ${BuildConfig.VERSION_NAME}",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
     }
 }
