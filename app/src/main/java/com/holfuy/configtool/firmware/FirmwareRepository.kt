@@ -97,7 +97,8 @@ class FirmwareRepository(
     )
     {
         var lastException: Exception? = null
-        val tempFilename = "${descriptor.filename}.part"
+        val tempFilename =
+            "${descriptor.filename}.part"
 
         repeat(MAX_DOWNLOAD_ATTEMPTS) { attempt ->
 
@@ -105,7 +106,8 @@ class FirmwareRepository(
 
                 Log.i(
                     TAG,
-                    "Downloading ${descriptor.filename} (attempt ${attempt + 1})"
+                    "Downloading ${descriptor.filename} " +
+                        "(attempt ${attempt + 1})"
                 )
 
                 download(descriptor)
@@ -114,7 +116,9 @@ class FirmwareRepository(
 
                     Log.i(
                         TAG,
-                        "Succeeded downloading ${descriptor.filename} on attempt ${attempt + 1}."
+                        "Succeeded downloading " +
+                            "${descriptor.filename} " +
+                            "on attempt ${attempt + 1}."
                     )
                 }
 
@@ -130,11 +134,16 @@ class FirmwareRepository(
 
                 Log.w(
                     TAG,
-                    "Attempt ${attempt + 1} of $MAX_DOWNLOAD_ATTEMPTS failed for ${descriptor.filename}.",
+                    "Attempt ${attempt + 1} of " +
+                        "$MAX_DOWNLOAD_ATTEMPTS failed for " +
+                        "${descriptor.filename}.",
                     e
                 )
 
-                if ((attempt + 1) < MAX_DOWNLOAD_ATTEMPTS) {
+                if (
+                    (attempt + 1) <
+                    MAX_DOWNLOAD_ATTEMPTS
+                ) {
                     delay(1000)
                 }
             }
@@ -175,20 +184,20 @@ class FirmwareRepository(
                             descriptor.filename
                         )
                             ?: error(
-                                "'${descriptor.filename}' not found after promotion."
+                                "'${descriptor.filename}' " +
+                                    "not found after promotion."
                             )
 
                     Log.i(
                         TAG,
-                        "Downloaded ${descriptor.filename} (${file.length()} bytes)"
+                        "Downloaded ${descriptor.filename} " +
+                            "(${file.length()} bytes)"
                     )
 
                     firmwareStatus +=
                         FirmwareStatus.Current(
                             file =
-                                storage.firmwareFile(
-                                    file
-                                ),
+                                storage.firmwareFile(file),
                             modem =
                                 descriptor.modem
                         )
@@ -197,7 +206,8 @@ class FirmwareRepository(
 
                     Log.w(
                         TAG,
-                        "Unable to obtain ${descriptor.filename}.",
+                        "Unable to obtain " +
+                            "${descriptor.filename}.",
                         e
                     )
 
@@ -219,11 +229,15 @@ class FirmwareRepository(
                             existingFile
                         )
 
-                    if (checksum == descriptor.sha256) {
+                    if (
+                        checksum ==
+                        descriptor.sha256
+                    ) {
 
                         Log.i(
                             TAG,
-                            "Verified existing ${descriptor.filename}"
+                            "Verified existing " +
+                                "${descriptor.filename}"
                         )
 
                         firmwareStatus +=
@@ -240,7 +254,8 @@ class FirmwareRepository(
 
                         Log.i(
                             TAG,
-                            "${descriptor.filename} is outdated; downloading replacement."
+                            "${descriptor.filename} " +
+                                "is outdated; downloading replacement."
                         )
 
                         try {
@@ -259,12 +274,14 @@ class FirmwareRepository(
                                     descriptor.filename
                                 )
                                     ?: error(
-                                        "'${descriptor.filename}' not found after promotion."
+                                        "'${descriptor.filename}' " +
+                                            "not found after promotion."
                                     )
 
                             Log.i(
                                 TAG,
-                                "Updated ${descriptor.filename} (${file.length()} bytes)"
+                                "Updated ${descriptor.filename} " +
+                                    "(${file.length()} bytes)"
                             )
 
                             firmwareStatus +=
@@ -281,7 +298,8 @@ class FirmwareRepository(
 
                             Log.w(
                                 TAG,
-                                "Unable to replace outdated ${descriptor.filename}.",
+                                "Unable to replace outdated " +
+                                    "${descriptor.filename}.",
                                 e
                             )
 
@@ -301,7 +319,9 @@ class FirmwareRepository(
 
                     Log.w(
                         TAG,
-                        "Unable to verify existing ${descriptor.filename}; will download replacement.",
+                        "Unable to verify existing " +
+                            "${descriptor.filename}; " +
+                            "will download replacement.",
                         e
                     )
 
@@ -321,38 +341,36 @@ class FirmwareRepository(
                                 descriptor.filename
                             )
                                 ?: error(
-                                    "'${descriptor.filename}' not found after promotion."
+                                    "'${descriptor.filename}' " +
+                                        "not found after promotion."
                                 )
 
                         Log.i(
                             TAG,
-                            "Replaced unreadable ${descriptor.filename} (${file.length()} bytes)"
+                            "Replaced unreadable " +
+                                "${descriptor.filename} " +
+                                "(${file.length()} bytes)"
                         )
 
                         firmwareStatus +=
                             FirmwareStatus.Current(
                                 file =
-                                    storage.firmwareFile(
-                                        file
-                                    ),
+                                    storage.firmwareFile(file),
                                 modem =
                                     descriptor.modem
                             )
 
-                    } catch (downloadException: Exception) {
+                    } catch (
+                        downloadException: Exception
+                    ) {
 
                         Log.w(
                             TAG,
-                            "Unable to replace unreadable ${descriptor.filename}.",
+                            "Unable to replace unreadable " +
+                                "${descriptor.filename}.",
                             downloadException
                         )
 
-                        /*
-                         * The file exists, but we were unable to establish
-                         * whether its contents match the manifest. Per our
-                         * agreed semantics, treat this as an unusable local
-                         * copy for purposes of refresh.
-                         */
                         firmwareStatus +=
                             FirmwareStatus.Outdated(
                                 file =
@@ -369,7 +387,7 @@ class FirmwareRepository(
 
         /*
          * Files in the repository that are not mentioned in the manifest
-         * are deliberately left untouched and are reported as CUSTOM.
+         * are reported as CUSTOM.
          */
         storage.listFiles()
             .filter { file ->
@@ -381,9 +399,7 @@ class FirmwareRepository(
 
                 firmwareStatus +=
                     FirmwareStatus.Custom(
-                        storage.firmwareFile(
-                            file
-                        )
+                        storage.firmwareFile(file)
                     )
             }
 
@@ -428,9 +444,11 @@ class FirmwareRepository(
                     storage.sha256(file)
 
                 check(
-                    checksum == descriptor.sha256
+                    checksum ==
+                        descriptor.sha256
                 ) {
-                    "SHA-256 verification failed for '${descriptor.filename}'."
+                    "SHA-256 verification failed for " +
+                        "'${descriptor.filename}'."
                 }
 
                 Log.i(
@@ -441,25 +459,66 @@ class FirmwareRepository(
     }
 
     /*
-     * Remove entries from a previously classified repository snapshot when
-     * the corresponding files no longer exist in the repository.
+     * Reconcile a previously classified snapshot with the files that
+     * physically exist in the repository.
      *
-     * Existing classifications are deliberately preserved. During refresh,
-     * they represent the last known classification until the new manifest
-     * has been completely synchronized.
+     * Existing classifications are preserved.
+     *
+     * Files that have disappeared are removed from the snapshot.
+     *
+     * Files that exist physically but were not present in the previous
+     * snapshot are newly discovered here and are treated as CUSTOM.
+     *
+     * The latter is primarily a fallback for a refresh where the manifest
+     * cannot be obtained. A successful manifest refresh subsequently
+     * replaces the entire snapshot with authoritative classifications.
      */
     private fun reconcileSnapshotWithStorage(
         snapshot: List<FirmwareStatus>
     ): List<FirmwareStatus>
     {
-        val existingFilenames =
+        val existingFiles =
             storage.listFiles()
-                .mapNotNull { it.name }
+
+        val existingByName =
+            existingFiles
+                .mapNotNull { file ->
+                    file.name?.let { name ->
+                        name to file
+                    }
+                }
+                .toMap()
+
+        val reconciled =
+            snapshot
+                .filter {
+                    it.filename in existingByName
+                }
+                .toMutableList()
+
+        val knownNames =
+            reconciled
+                .map {
+                    it.filename
+                }
                 .toSet()
 
-        return snapshot.filter {
-            it.filename in existingFilenames
-        }
+        existingFiles
+            .filter { file ->
+                val name = file.name
+
+                name != null &&
+                    name !in knownNames
+            }
+            .forEach { file ->
+
+                reconciled +=
+                    FirmwareStatus.Custom(
+                        storage.firmwareFile(file)
+                    )
+            }
+
+        return reconciled
     }
 
     suspend fun refresh()
@@ -480,12 +539,10 @@ class FirmwareRepository(
 
                 /*
                  * Immediately reconcile the previous snapshot against the
-                 * files that actually exist. This removes entries for files
-                 * that were deleted externally while retaining their last
-                 * known classifications for files that still exist.
+                 * actual repository contents.
                  *
-                 * The UI sees this snapshot while the manifest is being
-                 * downloaded and synchronized.
+                 * This both removes externally deleted files and discovers
+                 * files that appeared since the previous snapshot.
                  */
                 status = status.copy(
                     refreshing = true,
@@ -509,13 +566,16 @@ class FirmwareRepository(
                         )
 
                         /*
-                         * Files may have changed while the refresh was in
-                         * progress, so reconcile once more before publishing
-                         * the failed-refresh state.
+                         * Reconcile once more because repository contents
+                         * may have changed while the manifest request was
+                         * in progress.
+                         *
+                         * Newly discovered files are treated as CUSTOM.
                          */
                         status = status.copy(
                             refreshing = false,
-                            lastCheckFailed = Instant.now(),
+                            lastCheckFailed =
+                                Instant.now(),
                             firmware =
                                 reconcileSnapshotWithStorage(
                                     status.firmware
@@ -526,9 +586,9 @@ class FirmwareRepository(
                     }
 
                 /*
-                 * synchronizeRepository() builds a completely independent
-                 * snapshot. Nothing it does becomes visible to Compose
-                 * until the complete synchronization has finished.
+                 * Build the complete manifest-derived snapshot privately.
+                 * Nothing becomes visible to Compose until synchronization
+                 * has completed.
                  */
                 val firmwareStatus =
                     synchronizeRepository(
@@ -537,11 +597,12 @@ class FirmwareRepository(
 
                 /*
                  * Atomically replace the temporary snapshot with the
-                 * complete manifest-derived repository state.
+                 * complete, authoritative repository state.
                  */
                 status = status.copy(
                     refreshing = false,
-                    lastSuccessfullyChecked = Instant.now(),
+                    lastSuccessfullyChecked =
+                        Instant.now(),
                     lastCheckFailed = null,
                     firmware = firmwareStatus
                 )
