@@ -83,15 +83,15 @@ fun SelectFirmwareScreen(
         Spacer(
             modifier = Modifier.height(16.dp)
         )
-        
+
         firmwareSelectionError?.let { message ->
-        
+
             Text(
                 text = message,
                 color = MaterialTheme.colorScheme.error,
                 fontWeight = FontWeight.Medium
             )
-        
+
             Spacer(
                 modifier = Modifier.height(12.dp)
             )
@@ -102,11 +102,32 @@ fun SelectFirmwareScreen(
 
         if (selectableFirmware.isEmpty()) {
 
-            Text(
-                "No firmware files are available in the repository."
-            )
+            if (repositoryStatus.refreshing) {
+
+                Text(
+                    "Refreshing firmware repository..."
+                )
+
+            } else {
+
+                Text(
+                    "No firmware files are available in the repository."
+                )
+            }
 
         } else {
+
+            if (repositoryStatus.refreshing) {
+
+                Text(
+                    "Refreshing firmware repository...",
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+            }
 
             selectableFirmware.forEach { firmware ->
 

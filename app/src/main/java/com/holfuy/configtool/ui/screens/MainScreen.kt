@@ -44,6 +44,38 @@ fun MainScreen(
     repositoryStatus: RepositoryStatus
 )
 {
+    val selectedFirmware =
+        uiState.selectedFirmware
+
+    val selectedRepositoryDisposition =
+        selectedFirmware
+            ?.takeIf {
+                it.source ==
+                    FirmwareSelectionSource.REPOSITORY
+            }
+            ?.let { selected ->
+                repositoryStatus.firmware
+                    .firstOrNull {
+                        it.filename ==
+                            selected.file.name
+                    }
+            }
+
+    val selectedFirmwareAvailable =
+        when {
+            selectedFirmware == null ->
+                false
+
+            selectedFirmware.source ==
+                FirmwareSelectionSource.BROWSE ->
+                true
+
+            else ->
+                selectedRepositoryDisposition != null &&
+                    selectedRepositoryDisposition !is
+                        FirmwareStatus.Missing
+        }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -91,9 +123,6 @@ fun MainScreen(
             ) {
                 Text("Selected Firmware")
 
-                val selectedFirmware =
-                    uiState.selectedFirmware
-
                 if (selectedFirmware == null) {
 
                     Text("No file selected")
@@ -117,30 +146,7 @@ fun MainScreen(
 
                     } else {
 
-                        val disposition =
-                            repositoryStatus.firmware
-                                .firstOrNull { firmware ->
-
-                                    when (firmware) {
-
-                                        is FirmwareStatus.Current ->
-                                            firmware.file.name ==
-                                                selectedFirmware.file.name
-
-                                        is FirmwareStatus.Outdated ->
-                                            firmware.file.name ==
-                                                selectedFirmware.file.name
-
-                                        is FirmwareStatus.Custom ->
-                                            firmware.file.name ==
-                                                selectedFirmware.file.name
-
-                                        is FirmwareStatus.Missing ->
-                                            false
-                                    }
-                                }
-
-                        when (disposition) {
+                        when (selectedRepositoryDisposition) {
 
                             is FirmwareStatus.Current -> {
                                 Text("Current")
@@ -154,19 +160,18 @@ fun MainScreen(
                                 Text("Custom")
                             }
 
-                            is FirmwareStatus.Missing -> {
-                                // A selected firmware cannot be Missing.
-                            }
-
+                            is FirmwareStatus.Missing,
                             null -> {
-                                Text("Custom")
+                                Text("Missing")
                             }
                         }
 
                         if (repositoryStatus.refreshing) {
 
                             Text(
-                                "Checking for firmware..."
+                                "Refreshing firmware repository...",
+                                style =
+                                    MaterialTheme.typography.bodySmall
                             )
 
                         } else {
@@ -194,7 +199,7 @@ fun MainScreen(
                                     lastSuccessfullyChecked == null ||
                                         lastCheckFailed >
                                         lastSuccessfullyChecked
-                                    )
+                                )
                             ) {
 
                                 Text(
@@ -262,7 +267,7 @@ fun MainScreen(
             enabled =
                 deviceState.connected &&
                     !deviceState.updateInProgress &&
-                    uiState.selectedFirmware != null,
+                    selectedFirmwareAvailable,
             onClick = onUpdateFirmwareClick
         ) {
             Text("Update Firmware")
@@ -332,16 +337,8 @@ fun MainScreen(
                     uiState.firmwareUpdateError != null -> {
 
                         Text(
-                            "Firmware update failed",
+                            uiState.firmwareUpdateError!!,
                             fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(
-                            modifier = Modifier.height(4.dp)
-                        )
-
-                        Text(
-                            uiState.firmwareUpdateError
                         )
                     }
 
