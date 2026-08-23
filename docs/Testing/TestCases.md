@@ -108,11 +108,17 @@ or more Variation Specifications may be introduced.
 Each Interruption Point has a unique identifier across all reference workflows.
 The numbering does not imply ordering or equivalence between workflows.
 
+In the original workflow, firmware selection could not occur until after an
+ISP connection was established between the Android device and the station, hence
+IP-1 and IP-3 were independent and meaningful interruption points.
+The current workflow prescribes firmware selection before connecting the Android
+device to the station, making IP-3 redundant with IP-1, hence the retirment of IP-3.
+
 | ID | Workflow | Description |
 |----|----------|-------------|
 | IP-1 | WF-001 | Firmware selection available, before opening Select Firmware |
 | IP-2 | WF-001 | Select Firmware screen displayed |
-| IP-3 | WF-001 | Firmware selected, before connecting the weather station |
+| IP-3 | WF-001 | Retired |
 | IP-4 | WF-001 | Station powered on and connected via USB to Android device, before tapping **Connect** |
 | IP-5 | WF-001 | Waiting for USB permission |
 | IP-6 | WF-001 | Connected to weather station |
@@ -147,7 +153,7 @@ IP-6: VS-LIFE ×3
 
 IP-4: VS-FW-CANCEL
 
-IP-3: VS-STATION-LOST
+IP-5: VS-STATION-LOST
 ```
 
 ---
@@ -423,7 +429,7 @@ Each test case below specifies expected results in addition to these:
 
 **Application Session:** Persistent
 
-**Variation:** IP-3: Retain the existing firmware selection.
+**Variation:** IP-1: Retain the existing firmware selection.
 
 **Expected Results**
 
@@ -579,4 +585,53 @@ Each test case below specifies expected results in addition to these:
 - Repository directory selection can continue normally.
 - Repository configuration can be completed successfully.
 
+---
+
+## TC-021 — Firmware Repository Dispositions
+
+**Reference Workflow:** WF-001
+
+**Classification:** Regression
+
+**Variation:** IP-1, 2, 6: VS-REPO-DISPOSITION, VS-REPO-MISSING
+
+**Preconditions**
+
+- Firmware repository is configured and contains:
+  - a **Current** firmware file;
+  - an **Outdated** firmware file;
+  - a **Custom** firmware file;
+  - a firmware file that will become **Missing** during the test.
+- The Android device has Internet access as required to establish the Current and Outdated classifications.
+- The weather station is available for connection.
+
+**Procedure**
+
+1. Open the application.
+2. Tap **Select Firmware**.
+3. Verify that the Current, Outdated, and Custom files are listed with their respective dispositions.
+4. Verify that the Missing file is not listed.
+5. Select the Current firmware file and return to the main screen.
+6. Verify that the Selected Firmware card identifies the selected file as **Current**.
+7. Tap **Select Firmware**, select the Outdated firmware file, and return to the main screen.
+8. Verify that the Selected Firmware card identifies the selected file as **Outdated**.
+9. Tap **Select Firmware**, select the Custom firmware file, and return to the main screen.
+10. Verify that the Selected Firmware card identifies the selected file as **Custom**.
+11. Tap **Select Firmware**, select the firmware file that will be made Missing, and return to the main screen.
+12. Delete the selected firmware file from the filesystem.
+13. Cause the application to resume.
+14. Verify that the Selected Firmware card identifies the selected file as **Missing**.
+15. Turn off the weather station if necessary, connect it to the Android device, and turn it on.
+16. Tap **Connect** and grant USB permission if requested.
+17. Verify that the application reaches the connected state.
+18. Verify that **Update Firmware** is disabled while the selected firmware file is Missing.
+19. Return to **Select Firmware** and select the Current firmware file.
+20. Verify that the Selected Firmware card identifies the selected file as **Current**.
+21. Verify that **Update Firmware** is enabled.
+22. Return to **Select Firmware** and select the Outdated firmware file.
+23. Verify that the Selected Firmware card identifies the selected file as **Outdated**.
+24. Verify that **Update Firmware** is enabled.
+25. Return to **Select Firmware** and select the Custom firmware file.
+26. Verify that the Selected Firmware card identifies the selected file as **Custom**.
+27. Verify that **Update Firmware** is enabled.
 ---
