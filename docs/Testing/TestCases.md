@@ -616,6 +616,7 @@ From the project repository root:
 
 ```bash
 adb shell am start \
+  -n com.holfuy.configtool/.DebugManifestActivity \
   -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
   --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Manifests/Dispositions/all.json"
 ```
@@ -662,18 +663,27 @@ Do not place `missing.bin` in the repository.
 
 ### Preconditions
 
-1. The manifest URL override is set to the development manifest URL specified above.
-2. The test repository contains:
+Establish the preconditions in the order specified below.
+The manifest URL override is stored in the app's private data, so the app's data must
+be cleared before setting the manifest URL override.
+
+1. The app's data has been cleared so it presents the repository-configuration screen when opened.
+2. The manifest URL override is set to the development manifest URL specified above.
+3. The test repository contains:
    - `current.bin`
    - `outdated.bin`
    - `custom.bin`
    - `vanish.bin`
-3. `missing.bin` is absent from the repository.
-4. The firmware repository is configured to:
+4. `missing.bin` is absent from the repository.
+5. The firmware repository is configured to:
    `/sdcard/Download/HolfuyTest-Dispositions`
-5. The station is not required for the initial repository-disposition checks.
+6. The station is not required for the initial repository-disposition checks.
 
 ### Procedure
+
+Note that with this configuration, each repository-refresh cycle takes several seconds
+because the app must exhaust its retry count for a file before declaring it **Missing**
+or **Outdated**.
 
 1. Open the application and allow the repository refresh to complete.
 2. Tap **Select Firmware**.
@@ -712,12 +722,7 @@ Do not place `missing.bin` in the repository.
 28. Select `vanish.bin`.
 29. Return to the main screen.
 30. Verify that the Selected Firmware card identifies `vanish.bin` as **Current**.
-31. Delete `vanish.bin` from the test repository on the Android device:
-
-    ```bash
-    adb shell rm /sdcard/Download/HolfuyTest-Dispositions/vanish.bin
-    ```
-
+31. Delete `vanish.bin` from the test repository on the Android device (using a file-management app).
 32. Cause the application to resume, for example by navigating to another application and returning to Holfuy Upgrader.
 33. Verify that the Selected Firmware card now identifies `vanish.bin` as **Missing**.
 34. Connect the station to the Android device and turn on the station.
