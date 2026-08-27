@@ -1,9 +1,0 @@
-{
-  "firmwares": [
-    {
-      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/test-data-v1/docs/Testing/TestData/FirmwareRepository/Unavailable/missing.bin",
-      "modem": "TEST",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
-    }
-  ]
-}

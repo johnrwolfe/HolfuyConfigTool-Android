@@ -1,0 +1,24 @@
+{
+  "firmwares": [
+    {
+      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Disopositions/Current/Repository/current.bin",
+      "modem": "TEST",
+      "sha256": "97f7606d6c6849ec4c4c140dc25951465ab36fb1e667fec4ffef1437e0c00039"
+    },
+    {
+      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Unavailable/outdated.bin",
+      "modem": "TEST",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Unavailable/missing.bin",
+      "modem": "TEST",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    {
+      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Unavailable/vanish.bin",
+      "modem": "TEST",
+      "sha256": "40609b10cf6b28fc631956ed4df974989a7d0f362a13be37b26630a6b3cde78c"
+    }
+  ]
+}

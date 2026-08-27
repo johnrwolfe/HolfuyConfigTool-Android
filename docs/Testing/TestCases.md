@@ -587,51 +587,155 @@ Each test case below specifies expected results in addition to these:
 
 ---
 
-## TC-021 — Firmware Repository Dispositions
+## TC-021 — Firmware Repository Dispositions and Selection Availability
 
 **Reference Workflow:** WF-001
 
 **Classification:** Regression
 
-**Variation:** IP-1, 2, 6: VS-REPO-DISPOSITION, VS-REPO-MISSING
+**Variations:** VS-REPO-CURRENT, VS-REPO-OUTDATED, VS-REPO-MISSING, VS-REPO-CUSTOM
 
-**Preconditions**
+### Purpose
 
-- Firmware repository is configured and contains:
-  - a **Current** firmware file;
-  - an **Outdated** firmware file;
-  - a **Custom** firmware file;
-  - a firmware file that will become **Missing** during the test.
-- The Android device has Internet access as required to establish the Current and Outdated classifications.
-- The weather station is available for connection.
+Verify that the application correctly recognizes and presents Current, Outdated, Missing, 
+and Custom firmware files; that all existing selectable dispositions can be used to 
+initiate Firmware Update; and that a Missing selected firmware file cannot be used to 
+initiate Firmware Update.
 
-**Procedure**
+### Test Data
 
-1. Open the application.
+**Development manifest URL:**
+
+```text
+https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Manifests/Dispositions/all.json
+```
+
+**Manifest URL override:**
+
+From the project repository root:
+
+```bash
+adb shell am start \
+  -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
+  --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Manifests/Dispositions/all.json"
+```
+
+**Test repository on device:**
+
+```text
+/sdcard/Download/HolfuyTest-Dispositions
+```
+
+Create the repository if necessary:
+
+```bash
+adb shell mkdir -p /sdcard/Download/HolfuyTest-Dispositions
+```
+
+From the project repository root, populate it with:
+
+```bash
+adb push \
+  docs/Testing/TestData/FirmwareRepository/Dispositions/Current/Repository/current.bin \
+  /sdcard/Download/HolfuyTest-Dispositions/
+```
+
+```bash
+adb push \
+  docs/Testing/TestData/FirmwareRepository/Dispositions/Outdated/Repository/outdated.bin \
+  /sdcard/Download/HolfuyTest-Dispositions/
+```
+
+```bash
+adb push \
+  docs/Testing/TestData/FirmwareRepository/Dispositions/Custom/Repository/custom.bin \
+  /sdcard/Download/HolfuyTest-Dispositions/
+```
+
+```bash
+adb push \
+  docs/Testing/TestData/FirmwareRepository/Dispositions/SelectedMissing/Repository/vanish.bin \
+  /sdcard/Download/HolfuyTest-Dispositions/
+```
+
+Do not place `missing.bin` in the repository.
+
+### Preconditions
+
+1. The manifest URL override is set to the development manifest URL specified above.
+2. The test repository contains:
+   - `current.bin`
+   - `outdated.bin`
+   - `custom.bin`
+   - `vanish.bin`
+3. `missing.bin` is absent from the repository.
+4. The firmware repository is configured to:
+   `/sdcard/Download/HolfuyTest-Dispositions`
+5. The station is not required for the initial repository-disposition checks.
+
+### Procedure
+
+1. Open the application and allow the repository refresh to complete.
 2. Tap **Select Firmware**.
-3. Verify that the Current, Outdated, and Custom files are listed with their respective dispositions.
-4. Verify that the Missing file is not listed.
-5. Select the Current firmware file and return to the main screen.
-6. Verify that the Selected Firmware card identifies the selected file as **Current**.
-7. Tap **Select Firmware**, select the Outdated firmware file, and return to the main screen.
-8. Verify that the Selected Firmware card identifies the selected file as **Outdated**.
-9. Tap **Select Firmware**, select the Custom firmware file, and return to the main screen.
-10. Verify that the Selected Firmware card identifies the selected file as **Custom**.
-11. Tap **Select Firmware**, select the firmware file that will be made Missing, and return to the main screen.
-12. Delete the selected firmware file from the filesystem.
-13. Cause the application to resume.
-14. Verify that the Selected Firmware card identifies the selected file as **Missing**.
-15. Turn off the weather station if necessary, connect it to the Android device, and turn it on.
+3. Verify that the Select Firmware screen lists:
+   - `current.bin`, with disposition **Current**.
+   - `outdated.bin`, with disposition **Outdated**.
+   - `custom.bin`, with disposition **Custom**.
+   - `vanish.bin`, with disposition **Current**.
+
+   Verify that `missing.bin` is not listed.
+
+4. Select `current.bin`.
+5. Return to the main screen.
+6. Verify that the Selected Firmware card identifies `current.bin` as **Current**.
+7. Connect the station to the Android device and turn on the station.
+8. Tap **Connect** and grant USB permission if requested.
+9. Verify that **Update Firmware** is enabled.
+10. Do not perform the update. Turn off the station.
+11. Return to **Select Firmware**.
+12. Select `outdated.bin`.
+13. Return to the main screen.
+14. Verify that the Selected Firmware card identifies `outdated.bin` as **Outdated**.
+15. Connect the station to the Android device and turn on the station.
 16. Tap **Connect** and grant USB permission if requested.
-17. Verify that the application reaches the connected state.
-18. Verify that **Update Firmware** is disabled while the selected firmware file is Missing.
-19. Return to **Select Firmware** and select the Current firmware file.
-20. Verify that the Selected Firmware card identifies the selected file as **Current**.
-21. Verify that **Update Firmware** is enabled.
-22. Return to **Select Firmware** and select the Outdated firmware file.
-23. Verify that the Selected Firmware card identifies the selected file as **Outdated**.
-24. Verify that **Update Firmware** is enabled.
-25. Return to **Select Firmware** and select the Custom firmware file.
-26. Verify that the Selected Firmware card identifies the selected file as **Custom**.
-27. Verify that **Update Firmware** is enabled.
----
+17. Verify that **Update Firmware** is enabled.
+18. Do not perform the update. Turn off the station.
+19. Return to **Select Firmware**.
+20. Select `custom.bin`.
+21. Return to the main screen.
+22. Verify that the Selected Firmware card identifies `custom.bin` as **Custom**.
+23. Connect the station to the Android device and turn on the station.
+24. Tap **Connect** and grant USB permission if requested.
+25. Verify that **Update Firmware** is enabled.
+26. Do not perform the update. Turn off the station.
+27. Return to **Select Firmware**.
+28. Select `vanish.bin`.
+29. Return to the main screen.
+30. Verify that the Selected Firmware card identifies `vanish.bin` as **Current**.
+31. Delete `vanish.bin` from the test repository on the Android device:
+
+    ```bash
+    adb shell rm /sdcard/Download/HolfuyTest-Dispositions/vanish.bin
+    ```
+
+32. Cause the application to resume, for example by navigating to another application and returning to Holfuy Upgrader.
+33. Verify that the Selected Firmware card now identifies `vanish.bin` as **Missing**.
+34. Connect the station to the Android device and turn on the station.
+35. Tap **Connect** and grant USB permission if requested.
+36. Verify that **Update Firmware** is disabled.
+37. Return to **Select Firmware**.
+38. Verify that `vanish.bin` is no longer listed.
+
+### Expected Results
+
+- The Select Firmware screen lists all existing selectable repository files except Missing files.
+- `current.bin` is presented as **Current**.
+- `outdated.bin` is presented as **Outdated**.
+- `custom.bin` is presented as **Custom**.
+- `vanish.bin` is initially presented as **Current**.
+- `missing.bin` is not presented on the Select Firmware screen.
+- Current, Outdated, and Custom firmware selections are reflected with the corresponding disposition on the Selected Firmware card.
+- When a selected Current, Outdated, or Custom firmware file exists, the **Update Firmware** button is enabled after the station is connected.
+- When the selected repository file is deleted, its disposition changes to **Missing** when the application resumes.
+- A selected Missing firmware file cannot be used to initiate Firmware Update; **Update Firmware** is disabled.
+- A Missing firmware file is not listed on the Select Firmware screen.
