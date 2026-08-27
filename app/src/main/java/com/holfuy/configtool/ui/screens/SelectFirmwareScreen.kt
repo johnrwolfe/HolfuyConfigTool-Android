@@ -100,34 +100,42 @@ fun SelectFirmwareScreen(
         val selectableFirmware =
             repositoryStatus.firmware.filter(::isSelectable)
 
+        if (repositoryStatus.refreshing) {
+
+            Text(
+                "Refreshing firmware repository..."
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+        }
+        else if (
+            repositoryStatus.lastCheckFailed != null &&
+            (
+                repositoryStatus.lastSuccessfullyChecked == null ||
+                    repositoryStatus.lastCheckFailed >
+                    repositoryStatus.lastSuccessfullyChecked
+            )
+        ) {
+
+            Text(
+                "Unable to check for firmware updates.",
+                color = MaterialTheme.colorScheme.error
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+        }
+
         if (selectableFirmware.isEmpty()) {
 
-            if (repositoryStatus.refreshing) {
-
-                Text(
-                    "Refreshing firmware repository..."
-                )
-
-            } else {
-
-                Text(
-                    "No firmware files are available in the repository."
-                )
-            }
+            Text(
+                "No firmware files are available in the repository."
+            )
 
         } else {
-
-            if (repositoryStatus.refreshing) {
-
-                Text(
-                    "Refreshing firmware repository...",
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
-            }
 
             selectableFirmware.forEach { firmware ->
 
