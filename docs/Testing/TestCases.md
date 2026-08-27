@@ -604,12 +604,6 @@ initiate Firmware Update.
 
 ### Test Data
 
-**Development manifest URL:**
-
-```text
-https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Manifests/Dispositions/all.json
-```
-
 **Manifest URL override:**
 
 From the project repository root:
@@ -668,7 +662,7 @@ The manifest URL override is stored in the app's private data, so the app's data
 be cleared before setting the manifest URL override.
 
 1. The app's data has been cleared so it presents the repository-configuration screen when opened.
-2. The manifest URL override is set to the development manifest URL specified above.
+2. The manifest URL override is set as specified above.
 3. The test repository contains:
    - `current.bin`
    - `outdated.bin`
@@ -744,3 +738,137 @@ or **Outdated**.
 - When the selected repository file is deleted, its disposition changes to **Missing** when the application resumes.
 - A selected Missing firmware file cannot be used to initiate Firmware Update; **Update Firmware** is disabled.
 - A Missing firmware file is not listed on the Select Firmware screen.
+
+---
+
+## TC-022 — Replace Outdated Firmware
+
+**Reference Workflow:** WF-001
+
+**Classification:** Regression
+
+**Variation:** VS-REPO-REPLACE
+
+### Purpose
+
+Verify that a successful repository refresh replaces an Outdated firmware file with the Current 
+version identified by the manifest, and that the Selected Firmware card reflects the transition 
+from Outdated to Current.
+
+### Test Data
+
+**Manifest A URL:**
+
+```text
+https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-outdated.json
+```
+
+Manifest A identifies `replacement.bin` with a checksum that does not match the copy initially 
+placed in the repository and specifies an unavailable URL for the replacement file.
+
+**Manifest B URL:**
+
+```text
+https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-current.json
+```
+
+Manifest B identifies `replacement.bin` with the checksum of the replacement file and 
+specifies the URL from which the replacement file can be downloaded.
+
+The replacement file SHA-256 is:
+
+```text
+f3ad11014246cc9c67d2b3a5fda4bdb1ea8bc5ce6d0268de3487accdb32e6a77
+```
+
+**Test repository on device:**
+
+```text
+/sdcard/Download/HolfuyTest-Replacement
+```
+
+Create the repository if necessary:
+
+```bash
+adb shell mkdir -p /sdcard/Download/HolfuyTest-Replacement
+```
+
+From the project repository root, populate it with the older repository copy:
+
+```bash
+adb push \
+  docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/Repository/replacement.bin \
+  /sdcard/Download/HolfuyTest-Replacement/
+```
+
+Verify the initial file:
+
+```bash
+adb shell sha256sum /sdcard/Download/HolfuyTest-Replacement/replacement.bin
+```
+
+The initial SHA-256 should be:
+
+```text
+73907bd77f938f6b1446954d4f3363993455c9d19b337720c9c42c23700b6ae5
+```
+
+**Manifest URL override:**
+
+From the project repository root:
+
+```bash
+adb shell am start \
+  -n com.holfuy.configtool/.DebugManifestActivity \
+  -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
+  --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-outdated.json"
+```
+
+### Preconditions
+
+1. Clear the application's data.
+2. Set the manifest URL override to Manifest A.
+3. The repository contains the older `replacement.bin`.
+4. The Android device has an Internet connection.
+
+### Procedure
+
+1. Open the application.
+2. Configure the firmware repository as:
+   `/sdcard/Download/HolfuyTest-Replacement`
+3. Tap **Select Firmware**.
+4. Verify that `replacement.bin` is listed with disposition **Outdated**.
+5. Select `replacement.bin`.
+6. Return to the main screen.
+7. Verify that the Selected Firmware card identifies `replacement.bin` as **Outdated**.
+8. Set the manifest URL override to Manifest B:
+   ```bash
+   adb shell am start \
+     -n com.holfuy.configtool/.DebugManifestActivity \
+     -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
+     --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-current.json"
+   ```
+9. Cause the application to resume, initiating a repository refresh.
+10. Wait for the refresh to complete.
+11. Verify that the Selected Firmware card identifies `replacement.bin` as **Current**.
+12. Verify that the SHA-256 of the repository file is the replacement-image SHA-256:
+    ```bash
+    adb shell sha256sum /sdcard/Download/HolfuyTest-Replacement/replacement.bin
+    ```
+    Expected SHA-256:
+    ```text
+    f3ad11014246cc9c67d2b3a5fda4bdb1ea8bc5ce6d0268de3487accdb32e6a77
+    ```
+13. Tap **Select Firmware**.
+14. Verify that `replacement.bin` is listed with disposition **Current**.
+15. Verify that `replacement.bin` remains selected.
+
+### Expected Results
+
+- The existing `replacement.bin` is classified as **Outdated** when its checksum does not match the checksum specified by Manifest A.
+- The Selected Firmware card identifies the selected file as **Outdated**.
+- After Manifest B is selected and the repository is successfully refreshed, the Outdated file is replaced by the version identified by Manifest B.
+- The Selected Firmware card automatically changes the disposition of the selected file from **Outdated** to **Current**.
+- The repository file after replacement has the SHA-256 specified by Manifest B.
+- The Select Firmware screen identifies the replaced file as **Current**.
+- The replaced file remains selected.
