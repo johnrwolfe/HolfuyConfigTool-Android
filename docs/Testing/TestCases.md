@@ -872,3 +872,65 @@ adb shell am start \
 - The repository file after replacement has the SHA-256 specified by Manifest B.
 - The Select Firmware screen identifies the replaced file as **Current**.
 - The replaced file remains selected.
+
+---
+
+## TC-023 — Firmware Selection File Constraints
+
+**Reference Workflow:** WF-001
+
+**Classification:** Regression
+
+**Variation:** IP-2: Firmware file size and extension constraints
+
+### Purpose
+
+Verify that firmware files larger than 200 kB or having an extension other than `.bin` are not presented as selectable repository firmware, and that attempting to select such files through **Browse** produces the appropriate validation error.
+
+### Test Data
+
+The `SizeExtension` test fixture contains:
+
+- `valid_exactly_200kB.bin` — exactly 200 kB and has a `.bin` extension.
+- `too_large.bin` — larger than 200 kB and has a `.bin` extension.
+- `wrong_extension.txt` — no larger than 200 kB and has an extension other than `.bin`.
+- `wrong_extension_too_large.txt` — larger than 200 kB and has an extension other than `.bin`.
+
+The test repository on the Android device contains all four files.
+
+### Preconditions
+
+1. The firmware repository is configured to the test repository containing the four test files.
+2. The Android device has an Internet connection.
+3. The application has completed any repository refresh required to populate the repository state.
+4. The station is not required for this test.
+
+### Procedure
+
+1. Open the application.
+2. Tap **Select Firmware**.
+3. Verify that `valid_exactly_200kB.bin` is listed.  Note that other valid files will also be listed.
+4. Verify that `too_large.bin` is not listed.
+5. Verify that `wrong_extension.txt` is not listed.
+6. Verify that `wrong_extension_too_large.txt` is not listed.
+7. Tap **Browse**.
+8. Navigate to the test files and select `too_large.bin`.
+9. Verify that the application rejects the file and displays the error message indicating that the file is too large.
+10. Tap **Browse** again.
+11. Navigate to the test files and select `wrong_extension.txt`.
+12. Verify that the application rejects the file and displays the error message indicating that the file must have a `.bin` extension.
+13. Tap **Browse** again.
+14. Navigate to the test files and select `wrong_extension_too_large.txt`.
+15. Verify that the application rejects the file and displays the error message indicating that the file is both too large and has an invalid extension.
+
+### Expected Results
+
+- `valid_exactly_200kB.bin` is listed on the Select Firmware screen.
+- `too_large.bin` is not listed on the Select Firmware screen.
+- `wrong_extension.txt` is not listed on the Select Firmware screen.
+- `wrong_extension_too_large.txt` is not listed on the Select Firmware screen.
+- A Browse selection of `too_large.bin` is rejected with the appropriate size error.
+- A Browse selection of `wrong_extension.txt` is rejected with the appropriate extension error.
+- A Browse selection of `wrong_extension_too_large.txt` is rejected with the appropriate combined error.
+- An invalid Browse selection does not become the selected firmware.
+
