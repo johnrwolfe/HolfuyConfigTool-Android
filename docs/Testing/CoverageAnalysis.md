@@ -42,6 +42,10 @@ Matrix entries use the following notation.
 Matrices show only Interruption Points at which the behavioral variation is
 meaningful. Columns containing only `N` are omitted.
 
+IP-3 has been retired as an Interruption Point. Its number is intentionally
+unused so that the remaining Interruption Point numbers do not need to be
+renumbered. It therefore does not appear in the coverage matrices.
+
 ---
 
 # WF-001 — Firmware Update
@@ -87,16 +91,16 @@ Representative actions:
 * Screen timeout.
 * Back.
 
-| Interruption Point |   IP-1  |  IP-2  |   IP-3  |   IP-4  |  IP-5  |  IP-6  |   IP-7  |   IP-8  | IP-9 | IP-10 |
-| ------------------ | :-----: | :----: | :-----: | :-----: | :----: | :----: | :-----: | :-----: | :--: | :---: |
-| Coverage           | =TC-009 | TC-013 | =TC-009 | =TC-009 | TC-008 | TC-009 | =TC-009 | =TC-009 |  TBD |  TBD  |
+| Interruption Point |   IP-1  |  IP-2  |   IP-4  |  IP-5  |  IP-6  |   IP-7  |   IP-8  | IP-9 | IP-10 |
+| ------------------ | :-----: | :----: | :-----: | :-----: | :----: | :----: | :-----: | :--: | :---: |
+| Coverage           | =TC-009 | TC-013 | =TC-009 | TC-008 | TC-009 | =TC-009 | =TC-009 |  TBD |  TBD  |
 
 **Rationale**
 
 Interruption points are grouped according to which component owns the active
 user interface.
 
-IPs 1, 3, 4, 6, 7, and 8 are application-controlled UI states and are therefore
+IPs 1, 4, 6, 7, and 8 are application-controlled UI states and are therefore
 covered by TC-009.
 
 IP-2 is the application-controlled Select Firmware screen and is covered by
@@ -112,9 +116,9 @@ contexts and require additional coverage.
 
 ## Help
 
-| Interruption Point |  IP-1  |  IP-3  |  IP-4  |  IP-6  |  IP-7  |  IP-8  |
-| ------------------ | :----: | :----: | :----: | :----: | :----: | :----: |
-| Coverage           | TC-016 | TC-016 | TC-016 | TC-016 | TC-016 | TC-016 |
+| Interruption Point |  IP-1  |  IP-4  |  IP-6  |  IP-7  |  IP-8  |
+| ------------------ | :----: | :----: | :----: | :----: | :----: |
+| Coverage           | TC-016 | TC-016 | TC-016 | TC-016 | TC-016 |
 
 **Rationale**
 
@@ -140,17 +144,17 @@ must then be opened by tapping Help again.
 
 ### Select Repository-Resident Firmware
 
-| Interruption Point |  IP-2  |   IP-3  |   IP-4  |  IP-6  |
-| ------------------ | :----: | :-----: | :-----: | :----: |
-| Coverage           | TC-005 | =TC-005 | =TC-005 | TC-005 |
+| Interruption Point |  IP-2  |   IP-4  |  IP-6  |
+| ------------------ | :----: | :-----: | :----: |
+| Coverage           | TC-005 | =TC-005 | TC-005 |
 
 ---
 
 ### Select Firmware via Browse
 
-| Interruption Point |  IP-2  |   IP-3  |   IP-4  |  IP-6  |
-| ------------------ | :----: | :-----: | :-----: | :----: |
-| Coverage           | TC-017 | =TC-017 | =TC-017 | TC-017 |
+| Interruption Point |  IP-2  |   IP-4  |  IP-6  |
+| ------------------ | :----: | :-----: | :----: |
+| Coverage           | TC-017 | =TC-017 | TC-017 |
 
 ---
 
