@@ -161,8 +161,8 @@ must then be opened by tapping Help again.
 
 | Repository Content         | Coverage |
 | -------------------------- | -------- |
-| Manifest-provided firmware | TBD      |
-| Custom repository firmware | TBD      |
+| Manifest-provided firmware | =TC-017  |
+| Custom repository firmware | =TC-017  |
 
 ---
 
@@ -263,7 +263,7 @@ firmware already present in the repository.
 
 | Behavior                                                  | Coverage |
 | --------------------------------------------------------- | -------- |
-| Manifest successfully retrieved                           | TBD      |
+| Manifest successfully retrieved                           | TC-021   |
 | Manifest retrieval fails                                  | TBD      |
 | Existing repository remains usable after manifest failure | TBD      |
 
@@ -273,10 +273,10 @@ firmware already present in the repository.
 
 | Behavior                                                   | Coverage |
 | ---------------------------------------------------------- | -------- |
-| Latest firmware file downloads successfully                | TBD      |
-| Individual firmware download fails                         | TBD      |
-| Existing firmware remains available after download failure | TBD      |
-| Downloaded firmware becomes available for selection        | TBD      |
+| Latest firmware file downloads successfully                | TC-022   |
+| Individual firmware download fails                         | TC-021   |
+| Existing firmware remains available after download failure | TC-021   |
+| Downloaded firmware becomes available for selection        | TC-022   |
 
 ---
 
@@ -287,9 +287,9 @@ repository. The application uses the `path` attribute to locate firmware files.
 
 | Behavior                                                  | Coverage |
 | --------------------------------------------------------- | -------- |
-| Multiple modem types listed in manifest                   | TBD      |
-| Each listed firmware file is downloaded                   | TBD      |
-| New modem type can be added without an application update | TBD      |
+| Multiple modem types listed in manifest                   | TC-001   |
+| Each listed firmware file is downloaded                   | TC-001   |
+| New modem type can be added without an application update | TC-021   |
 | Malformed or unexpected manifest content                  | TBD      |
 
 ---
@@ -301,10 +301,10 @@ custom firmware files placed there by the user.
 
 | Behavior                                                       | Coverage |
 | -------------------------------------------------------------- | -------- |
-| Automatically downloaded firmware is retained                  | TBD      |
-| Custom firmware is retained                                    | TBD      |
-| Both types appear in Select Firmware                           | TBD      |
-| Existing firmware remains usable after synchronization failure | TBD      |
+| Automatically downloaded firmware is retained                  | TC-021   |
+| Custom firmware is retained                                    | TC-021   |
+| Both types appear in Select Firmware                           | TC-021   |
+| Existing firmware remains usable after synchronization failure | TC-021   |
 
 ---
 
@@ -312,10 +312,10 @@ custom firmware files placed there by the user.
 
 The following session states are relevant to the coverage analysis.
 
-| State      | Description                                                                                        |
-| ---------- | -------------------------------------------------------------------------------------------------- |
-| Fresh      | Newly installed application or application stopped with data cleared; no firmware selection exists |
-| Persistent | Previously used application retaining its firmware selection and repository configuration          |
+| State      | Description                                                                                                                      |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Fresh      | Newly installed application or application stopped with data cleared; repository is not configured; no firmware selection exists |
+| Persistent | Previously used application retaining its firmware selection and repository configuration                                        |
 
 Unless otherwise specified, either session state is acceptable for a test.
 
@@ -328,10 +328,10 @@ The Fresh/Persistent distinction is particularly relevant to:
 
 | Behavioral Area          | Fresh | Persistent |
 | ------------------------ | :---: | :--------: |
-| Firmware selection       |  TBD  |     TBD    |
-| Repository configuration |  TBD  |      N     |
-| Manifest synchronization |  TBD  |     TBD    |
-| Repository contents      |  TBD  |     TBD    |
+| Firmware selection       | TC-001|   TC-001   |
+| Repository configuration | TC-001|      N     |
+| Manifest synchronization | TC-021|   TC-021   |
+| Repository contents      | TC-021|   TC-021   |
 
 ---
 

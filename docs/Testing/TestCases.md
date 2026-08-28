@@ -661,7 +661,7 @@ Establish the preconditions in the order specified below.
 The manifest URL override is stored in the app's private data, so the app's data must
 be cleared before setting the manifest URL override.
 
-1. The app's data has been cleared so it presents the repository-configuration screen when opened.
+1. Application Session: Fresh
 2. The manifest URL override is set as specified above.
 3. The test repository contains:
    - `current.bin`
@@ -669,9 +669,6 @@ be cleared before setting the manifest URL override.
    - `custom.bin`
    - `vanish.bin`
 4. `missing.bin` is absent from the repository.
-5. The firmware repository is configured to:
-   `/sdcard/Download/HolfuyTest-Dispositions`
-6. The station is not required for the initial repository-disposition checks.
 
 ### Procedure
 
@@ -679,9 +676,11 @@ Note that with this configuration, each repository-refresh cycle takes several s
 because the app must exhaust its retry count for a file before declaring it **Missing**
 or **Outdated**.
 
-1. Open the application and allow the repository refresh to complete.
-2. Tap **Select Firmware**.
-3. Verify that the Select Firmware screen lists:
+1. Open the application.
+2. Configure the firmware repository to:
+   `/sdcard/Download/HolfuyTest-Dispositions`
+3. Tap **Select Firmware**.
+4. Verify that the Select Firmware screen lists:
    - `current.bin`, with disposition **Current**.
    - `outdated.bin`, with disposition **Outdated**.
    - `custom.bin`, with disposition **Custom**.
@@ -689,41 +688,46 @@ or **Outdated**.
 
    Verify that `missing.bin` is not listed.
 
-4. Select `current.bin`.
-5. Return to the main screen.
-6. Verify that the Selected Firmware card identifies `current.bin` as **Current**.
-7. Connect the station to the Android device and turn on the station.
-8. Tap **Connect** and grant USB permission if requested.
-9. Verify that **Update Firmware** is enabled.
-10. Do not perform the update. Turn off the station.
-11. Return to **Select Firmware**.
-12. Select `outdated.bin`.
-13. Return to the main screen.
-14. Verify that the Selected Firmware card identifies `outdated.bin` as **Outdated**.
-15. Connect the station to the Android device and turn on the station.
-16. Tap **Connect** and grant USB permission if requested.
-17. Verify that **Update Firmware** is enabled.
-18. Do not perform the update. Turn off the station.
-19. Return to **Select Firmware**.
-20. Select `custom.bin`.
-21. Return to the main screen.
-22. Verify that the Selected Firmware card identifies `custom.bin` as **Custom**.
-23. Connect the station to the Android device and turn on the station.
-24. Tap **Connect** and grant USB permission if requested.
-25. Verify that **Update Firmware** is enabled.
-26. Do not perform the update. Turn off the station.
-27. Return to **Select Firmware**.
-28. Select `vanish.bin`.
-29. Return to the main screen.
-30. Verify that the Selected Firmware card identifies `vanish.bin` as **Current**.
-31. Delete `vanish.bin` from the test repository on the Android device (using a file-management app).
-32. Cause the application to resume, for example by navigating to another application and returning to Holfuy Upgrader.
-33. Verify that the Selected Firmware card now identifies `vanish.bin` as **Missing**.
-34. Connect the station to the Android device and turn on the station.
-35. Tap **Connect** and grant USB permission if requested.
-36. Verify that **Update Firmware** is disabled.
-37. Return to **Select Firmware**.
-38. Verify that `vanish.bin` is no longer listed.
+5. Select `current.bin`.
+6. Return to the main screen.
+7. Verify that the Selected Firmware card identifies `current.bin` as **Current**.
+8. Connect the station to the Android device and turn on the station.
+9. Tap **Connect** and grant USB permission if requested.
+10. Verify that **Update Firmware** is enabled.
+11. Do not perform the update. Turn off the station.
+12. Tap **Select Firmware**.
+13. Select `outdated.bin`.
+14. Return to the main screen.
+15. Verify that the Selected Firmware card identifies `outdated.bin` as **Outdated**.
+16. Connect the station to the Android device and turn on the station.
+17. Tap **Connect** and grant USB permission if requested.
+18. Verify that **Update Firmware** is enabled.
+19. Do not perform the update. Turn off the station.
+20. Tap **Select Firmware**.
+21. Select `custom.bin`.
+22. Return to the main screen.
+23. Verify that the Selected Firmware card identifies `custom.bin` as **Custom**.
+24. Connect the station to the Android device and turn on the station.
+25. Tap **Connect** and grant USB permission if requested.
+26. Verify that **Update Firmware** is enabled.
+27. Do not perform the update. Turn off the station.
+28. Tap **Select Firmware**.
+29. Select `vanish.bin`.
+30. Return to the main screen.
+31. Verify that the Selected Firmware card identifies `vanish.bin` as **Current**.
+32. Delete `vanish.bin` from the test repository on the Android device (using a file-management app).
+33. Cause the application to resume, for example by navigating to another application and returning to Holfuy Upgrader.
+34. Verify that the Selected Firmware card now identifies `vanish.bin` as **Missing**.
+35. Connect the station to the Android device and turn on the station.
+36. Tap **Connect** and grant USB permission if requested.
+37. Verify that **Update Firmware** is disabled.
+38. Tap **Select Firmware**.
+39. Verify that the Select Firmware screen lists:
+   - `current.bin`, with disposition **Current**.
+   - `outdated.bin`, with disposition **Outdated**.
+   - `custom.bin`, with disposition **Custom**.
+   
+   Verify that `missing.bin` and `vanish.bin` are no longer listed.
 
 ### Expected Results
 
