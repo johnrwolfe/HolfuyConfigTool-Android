@@ -1,0 +1,8 @@
+{
+  "firmwares": [
+    {
+      "path": "https://example.com/firmware.bin",
+      "modem": "TEST"
+    }
+  ]
+}

@@ -15,16 +15,16 @@ coverage of the application's behavior.
 
 Each test case consists of the following sections.
 
-| Section | Purpose |
-|----------|---------|
-| ID | Unique test identifier |
-| Title | Short descriptive name |
-| Reference Workflow | Typically WF-001 |
-| Classification | Smoke, Regression, Compatibility, Exploratory |
-| Preconditions | Conditions required before executing the test |
-| Variation | Interruption Point and Variation Specification |
-| Expected Results | Observable system behavior |
-| Regression History | GitHub issue(s), if applicable |
+| Section            | Purpose                                        |
+| ------------------ | ---------------------------------------------- |
+| ID                 | Unique test identifier                         |
+| Title              | Short descriptive name                         |
+| Reference Workflow | Typically WF-001                               |
+| Classification     | Smoke, Regression, Compatibility, Exploratory  |
+| Preconditions      | Conditions required before executing the test  |
+| Variation          | Interruption Point and Variation Specification |
+| Expected Results   | Observable system behavior                     |
+| Regression History | GitHub issue(s), if applicable                 |
 
 ---
 
@@ -40,14 +40,14 @@ Execute the firmware update procedure exactly as described in the User Guide.
 
 **Expected Results**
 
-- A firmware image can be selected before connecting to the weather station.
-- USB permission is granted.
-- Connection succeeds.
-- Firmware update completes successfully.
-- Progress indication reaches completion.
-- Application remains responsive.
-- No crash or "Application Not Responding" (ANR) occurs.
-- The station boots the newly installed firmware.
+* A firmware image can be selected before connecting to the weather station.
+* USB permission is granted.
+* Connection succeeds.
+* Firmware update completes successfully.
+* Progress indication reaches completion.
+* Application remains responsive.
+* No crash or "Application Not Responding" (ANR) occurs.
+* The station boots the newly installed firmware.
 
 ---
 
@@ -68,13 +68,7 @@ but the user may select any directory permitted by the Android framework.
 
 **Expected Results**
 
-- The firmware repository directory is configured successfully.
-- The application proceeds to normal operation.
-- The repository configuration is retained for subsequent application use.
-- The user is not required to configure the repository again on subsequent
-  application invocations.
-
-The repository configuration is expected to survive upgrades of the app.
+- Application satisfies the VS-REPO-CONFIG expected behavioral property.
 
 ---
 
@@ -83,10 +77,10 @@ The repository configuration is expected to survive upgrades of the app.
 Application Session State identifies the persistent state of Holfuy Upgrader
 when a test begins.
 
-| State | Definition |
-|-------|------------|
-| Fresh | The application has been newly installed, or has been stopped with its application data cleared. No firmware selection is retained and the firmware repository has not yet been configured. |
-| Persistent | The application has previously been used and retains its configured firmware repository and, if one was previously selected, its firmware selection. |
+| State      | Definition                                                                                                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fresh      | The application has been newly installed, or has been stopped with its application data cleared. No firmware selection is retained and the firmware repository has not yet been configured. |
+| Persistent | The application has previously been used and retains its configured firmware repository and, if one was previously selected, its firmware selection.                                        |
 
 ## Default Assumptions
 
@@ -112,20 +106,20 @@ In the original workflow, firmware selection could not occur until after an
 ISP connection was established between the Android device and the station, hence
 IP-1 and IP-3 were independent and meaningful interruption points.
 The current workflow prescribes firmware selection before connecting the Android
-device to the station, making IP-3 redundant with IP-1, hence the retirment of IP-3.
+device to the station, making IP-3 redundant with IP-1, hence the retirement of IP-3.
 
-| ID | Workflow | Description |
-|----|----------|-------------|
-| IP-1 | WF-001 | Firmware selection available, before opening Select Firmware |
-| IP-2 | WF-001 | Select Firmware screen displayed |
-| IP-3 | WF-001 | Retired |
-| IP-4 | WF-001 | Station powered on and connected via USB to Android device, before tapping **Connect** |
-| IP-5 | WF-001 | Waiting for USB permission |
-| IP-6 | WF-001 | Connected to weather station |
-| IP-7 | WF-001 | Firmware update in progress |
-| IP-8 | WF-001 | Firmware update completed |
-| IP-9 | WF-003 | Repository configuration instructions displayed |
-| IP-10 | WF-003 | Repository directory picker displayed |
+| ID    | Workflow | Description                                                                            |
+| ----- | -------- | -------------------------------------------------------------------------------------- |
+| IP-1  | WF-001   | Firmware selection available, before opening Select Firmware                           |
+| IP-2  | WF-001   | Select Firmware screen displayed                                                       |
+| IP-3  | WF-001   | Retired                                                                                |
+| IP-4  | WF-001   | Station powered on and connected via USB to Android device, before tapping **Connect** |
+| IP-5  | WF-001   | Waiting for USB permission                                                             |
+| IP-6  | WF-001   | Connected to weather station                                                           |
+| IP-7  | WF-001   | Firmware update in progress                                                            |
+| IP-8  | WF-001   | Firmware update completed                                                              |
+| IP-9  | WF-003   | Repository configuration instructions displayed                                        |
+| IP-10 | WF-003   | Repository directory picker displayed                                                  |
 
 ---
 
@@ -195,7 +189,7 @@ Expected behavioral property:
 * Android reports USB device removal.
 * The application returns to the disconnected state.
 * The user is able to recover by restoring the weather station connection to
-the Android device and restarting the workflow.
+  the Android device and restarting the workflow.
 
 ---
 
@@ -226,8 +220,8 @@ Select a firmware file from the repository's firmware list.
 
 Expected behavioral property:
 
-- The selected repository firmware becomes the active firmware selection.
-- If a firmware selection already exists, it is replaced by the newly selected
+* The selected repository firmware becomes the active firmware selection.
+* If a firmware selection already exists, it is replaced by the newly selected
   repository firmware.
 
 ---
@@ -238,25 +232,118 @@ Select a firmware file using **Browse** and the Android document picker.
 
 Expected behavioral property:
 
-- The selected firmware becomes the active firmware selection.
-- If a firmware selection already exists, it is replaced by the newly selected
+* The selected firmware becomes the active firmware selection.
+* If a firmware selection already exists, it is replaced by the newly selected
   firmware.
-  
+
+---
+
+### VS-REPO-CONFIG
+
+Configure the firmware repository using the application's repository
+configuration workflow.
+
+Expected behavioral property:
+
+* The firmware repository directory is configured successfully.
+* The application proceeds to normal operation.
+* The repository configuration is retained for subsequent application use.
+* The user is not required to configure the repository again on subsequent
+  application invocations.
+* The repository configuration survives upgrades of the app.
+
+---
+
+### VS-REPO-CURRENT
+
+A repository firmware file exists and its checksum matches the checksum
+specified by the manifest.
+
+Expected behavioral property:
+
+* The firmware file is presented as **Current**.
+* The firmware file is available for selection.
+
+---
+
+### VS-REPO-OUTDATED
+
+A repository firmware file exists but its checksum does not match the checksum
+specified by the manifest.
+
+Expected behavioral property:
+
+* The firmware file is presented as **Outdated**.
+* The firmware file is available for selection.
+
+---
+
+### VS-REPO-MISSING
+
+A firmware file specified by the manifest is not present in the repository.
+
+Expected behavioral property:
+
+* The firmware file is not presented as selectable repository firmware.
+* If the file was previously selected, its disposition is **Missing** and
+  Firmware Update is unavailable.
+
+---
+
+### VS-REPO-CUSTOM
+
+A firmware file exists in the repository but is not specified by the manifest.
+
+Expected behavioral property:
+
+* The firmware file is presented as **Custom**.
+* The firmware file is available for selection.
+
+---
+
+### VS-REPO-MANIFEST-FAIL
+
+The application cannot retrieve the firmware repository manifest during
+repository synchronization.
+
+Expected behavioral property:
+
+* The existing repository contents remain usable.
+* An existing firmware selection remains selected and usable.
+* The disposition of firmware within the repository is unchanged.
+* Repository synchronization resumes normally when manifest retrieval becomes
+  available again.
+
+---
+
+### VS-REPO-MANIFEST-MALFORMED
+
+The firmware repository manifest is successfully retrieved but contains
+malformed or unexpected content.
+
+Expected behavioral property:
+
+* The application handles the invalid manifest without crashing or becoming
+  unusable.
+* Existing repository contents remain usable.
+* An existing firmware selection remains selected and usable.
+* The disposition of firmware within the repository is unchanged.
+
 ---
 
 ### VS-HELP
 
-- Tap **Help**.
-- Scroll Help screen.
-- Tap **Close Help**.
-- Tap **Help**.
-- Rotate device.
-- Tap **Back**.
+* Tap **Help**.
+* Scroll Help screen.
+* Tap **Close Help**.
+* Tap **Help**.
+* Rotate device.
+* Tap **Back**.
 
 Expected behavioral property:
 
 * Help screen is displayed, scrolls, and responds appropriately to rotation.
-* **Back** and **Close Help** both close Help screen and return to Main screen. 
+* **Back** and **Close Help** both close Help screen and return to Main screen.
 
 ---
 
@@ -268,7 +355,7 @@ Expected behavioral property:
 
 **Preconditions**
 
-- Application Session: Fresh and Persistent
+* Application Session: Fresh and Persistent
 
 ---
 
@@ -276,9 +363,8 @@ Expected behavioral property:
 
 Each test case below specifies expected results in addition to these:
 
-- Application remains responsive.
-- No crash or (ANR) occurs.
-
+* Application remains responsive.
+* No crash or (ANR) occurs.
 
 ## TC-002 — USB Permission Denied
 
@@ -290,9 +376,9 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Connection is not established.
-- Firmware Update remains unavailable.
-- User may retry by tapping **Connect**.
+* Connection is not established.
+* Firmware Update remains unavailable.
+* User may retry by tapping **Connect**.
 
 ---
 
@@ -324,9 +410,9 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- No change to firmware selection.
-- Firmware Update remains disabled.
-- User may reopen the file picker.
+* No change to firmware selection.
+* Firmware Update remains disabled.
+* User may reopen the file picker.
 
 ---
 
@@ -340,7 +426,7 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Application satisfies the VS-FW-REPO-SELECT expected behavioral property.
+* Application satisfies the VS-FW-REPO-SELECT expected behavioral property.
 
 ---
 
@@ -356,14 +442,14 @@ Each test case below specifies expected results in addition to these:
 
 **Application**
 
-- Detects loss of communication.
-- Terminates the firmware update cleanly.
-- Returns to the disconnected state.
-- Remains responsive.
+* Detects loss of communication.
+* Terminates the firmware update cleanly.
+* Returns to the disconnected state.
+* Remains responsive.
 
 **Weather Station**
 
-- Boots the previously installed firmware.
+* Boots the previously installed firmware.
 
 ---
 
@@ -375,15 +461,15 @@ Each test case below specifies expected results in addition to these:
 
 **Preconditions**
 
-- Attach an unsupported USB device.
+* Attach an unsupported USB device.
 
 **Variation:** IP-4: VS-USB-UNSUPPORTED
 
 **Expected Results**
 
-- Connect remains unavailable.
-- Firmware selection remains unavailable.
-- Firmware Update remains unavailable.
+* Connect remains unavailable.
+* Firmware selection remains unavailable.
+* Firmware Update remains unavailable.
 
 ---
 
@@ -397,10 +483,10 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Application resumes with Connect enabled.
-- Tapping Connect presents USB permission dialog.
-- USB permission workflow completes normally.
-- Firmware update may be completed successfully.
+* Application resumes with Connect enabled.
+* Tapping Connect presents USB permission dialog.
+* USB permission workflow completes normally.
+* Firmware update may be completed successfully.
 
 ---
 
@@ -414,10 +500,10 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Application resumes in an equivalent state.
-- Firmware update continues uninterrupted.
-- Progress indication remains correct.
-- Firmware update completes successfully.
+* Application resumes in an equivalent state.
+* Firmware update continues uninterrupted.
+* Progress indication remains correct.
+* Firmware update completes successfully.
 
 ---
 
@@ -433,8 +519,8 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Previously selected firmware remains selected.
-- Firmware Update is enabled after connection.
+* Previously selected firmware remains selected.
+* Firmware Update is enabled after connection.
 
 ---
 
@@ -446,7 +532,7 @@ Each test case below specifies expected results in addition to these:
 
 **Preconditions**
 
-- Application Session: Fresh and Persistent
+* Application Session: Fresh and Persistent
 
 ---
 
@@ -460,11 +546,11 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Android reports USB device removal.
-- Application indicates that the station is no longer connected.
-- Firmware update is no longer available.
-- No error dialog is displayed.
-- After the weather station is restored, the user can reconnect and continue the normal workflow.
+* Android reports USB device removal.
+* Application indicates that the station is no longer connected.
+* Firmware update is no longer available.
+* No error dialog is displayed.
+* After the weather station is restored, the user can reconnect and continue the normal workflow.
 
 ---
 
@@ -478,9 +564,9 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Application resumes in an equivalent state.
-- Firmware selection can continue normally.
-- Firmware update can be completed successfully.
+* Application resumes in an equivalent state.
+* Firmware selection can continue normally.
+* Firmware update can be completed successfully.
 
 ---
 
@@ -494,9 +580,9 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Android reports USB device removal.
-- Application indicates that the station is no longer connected.
-- "Firmware update complete" message is not present on the main screen.
+* Android reports USB device removal.
+* Application indicates that the station is no longer connected.
+* "Firmware update complete" message is not present on the main screen.
 
 ---
 
@@ -506,11 +592,11 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Historical
 
-**Variation:** IP-7: VS-FW-REPLACE
+**Variation:** IP-8: Tap **Select Firmware**.
 
 **Expected Results**
 
-- "Firmware update complete" message is not present on the main screen.
+* "Firmware update complete" message is not present on the main screen.
 
 ---
 
@@ -524,7 +610,7 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Application satisfies the VS-HELP expected behavioral property.
+* Application satisfies the VS-HELP expected behavioral property.
 
 ---
 
@@ -538,7 +624,7 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Application satisfies the VS-FW-BROWSE-SELECT expected behavioral property.
+* Application satisfies the VS-FW-BROWSE-SELECT expected behavioral property.
 
 ---
 
@@ -548,11 +634,13 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-9, 10: VS-LIFE
+**Variation:** IP-9, 10: VS-LIFE, VS-REPO-CONFIG
 
 **Expected Results**
 
-- Application satisfies the repository configuration expected behavioral property.
+### Expected Results
+
+- Application satisfies the VS-REPO-CONFIG and VS-LIFE expected behavioral properties.
 
 ---
 
@@ -566,24 +654,55 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-- Application returns to the firmware repository configuration screen.
-- Repository configuration remains incomplete.
+* Application returns to the firmware repository configuration screen.
+* Repository configuration remains incomplete.
 
 ---
 
-## TC-020 — Android Lifecycle Interruption During Repository Directory Selection
+## TC-020 — Manifest Retrieval Failure
 
-**Reference Workflow:** WF-003
+**Reference Workflow:** WF-001
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-10: VS-LIFE
+**Application Session:** Persistent
 
-**Expected Results**
+### Purpose
 
-- Application resumes in an equivalent state.
-- Repository directory selection can continue normally.
-- Repository configuration can be completed successfully.
+Verify that failure to retrieve the firmware repository manifest does not make an existing repository or firmware selection unusable.
+
+### Preconditions
+
+1. Application Session: Persistent.
+2. The firmware repository is configured.
+3. The repository contains at least one valid firmware file.
+4. A repository firmware file is selected.
+5. The selected firmware is available and usable.
+6. The Android device has an Internet connection.
+
+### Procedure
+
+1. Open the application.
+2. Tap **Select Firmware**.
+3. Verify that the selected firmware is listed with its expected disposition.
+4. Return to the main screen.
+5. Verify that the Selected Firmware card identifies the selected firmware and its expected disposition.
+6. Disable Internet connectivity on the Android device.
+7. Cause the application to resume, initiating a repository refresh.
+8. Wait for the refresh to complete.
+9. Verify that the application reports or otherwise indicates that the manifest could not be retrieved.
+10. Tap **Select Firmware**.
+11. Verify that the existing repository firmware remains available for selection.
+12. Return to the main screen.
+13. Verify that the previously selected firmware remains selected and usable.
+14. Restore Internet connectivity on the Android device.
+15. Cause the application to resume, initiating a repository refresh.
+16. Wait for the refresh to complete.
+17. Verify that normal repository synchronization resumes.
+
+### Expected Results
+
+- Application satisfies the VS-REPO-MANIFEST-FAIL expected behavioral property.
 
 ---
 
@@ -597,9 +716,9 @@ Each test case below specifies expected results in addition to these:
 
 ### Purpose
 
-Verify that the application correctly recognizes and presents Current, Outdated, Missing, 
-and Custom firmware files; that all existing selectable dispositions can be used to 
-initiate Firmware Update; and that a Missing selected firmware file cannot be used to 
+Verify that the application correctly recognizes and presents Current, Outdated, Missing,
+and Custom firmware files; that all existing selectable dispositions can be used to
+initiate Firmware Update; and that a Missing selected firmware file cannot be used to
 initiate Firmware Update.
 
 ### Test Data
@@ -664,10 +783,11 @@ be cleared before setting the manifest URL override.
 1. Application Session: Fresh
 2. The manifest URL override is set as specified above.
 3. The test repository contains:
-   - `current.bin`
-   - `outdated.bin`
-   - `custom.bin`
-   - `vanish.bin`
+
+   * `current.bin`
+   * `outdated.bin`
+   * `custom.bin`
+   * `vanish.bin`
 4. `missing.bin` is absent from the repository.
 
 ### Procedure
@@ -685,9 +805,7 @@ or **Outdated**.
    - `outdated.bin`, with disposition **Outdated**.
    - `custom.bin`, with disposition **Custom**.
    - `vanish.bin`, with disposition **Current**.
-
    Verify that `missing.bin` is not listed.
-
 5. Select `current.bin`.
 6. Return to the main screen.
 7. Verify that the Selected Firmware card identifies `current.bin` as **Current**.
@@ -726,22 +844,11 @@ or **Outdated**.
    - `current.bin`, with disposition **Current**.
    - `outdated.bin`, with disposition **Outdated**.
    - `custom.bin`, with disposition **Custom**.
-   
    Verify that `missing.bin` and `vanish.bin` are no longer listed.
 
 ### Expected Results
 
-- The Select Firmware screen lists all existing selectable repository files except Missing files.
-- `current.bin` is presented as **Current**.
-- `outdated.bin` is presented as **Outdated**.
-- `custom.bin` is presented as **Custom**.
-- `vanish.bin` is initially presented as **Current**.
-- `missing.bin` is not presented on the Select Firmware screen.
-- Current, Outdated, and Custom firmware selections are reflected with the corresponding disposition on the Selected Firmware card.
-- When a selected Current, Outdated, or Custom firmware file exists, the **Update Firmware** button is enabled after the station is connected.
-- When the selected repository file is deleted, its disposition changes to **Missing** when the application resumes.
-- A selected Missing firmware file cannot be used to initiate Firmware Update; **Update Firmware** is disabled.
-- A Missing firmware file is not listed on the Select Firmware screen.
+- Application satisfies the VS-REPO-CURRENT, VS-REPO-OUTDATED, VS-REPO-MISSING, and VS-REPO-CUSTOM expected behavioral properties.
 
 ---
 
@@ -751,12 +858,12 @@ or **Outdated**.
 
 **Classification:** Regression
 
-**Variation:** VS-REPO-REPLACE
+**Variation:** VS-REPO-OUTDATED, VS-REPO-CURRENT
 
 ### Purpose
 
-Verify that a successful repository refresh replaces an Outdated firmware file with the Current 
-version identified by the manifest, and that the Selected Firmware card reflects the transition 
+Verify that a successful repository refresh replaces an Outdated firmware file with the Current
+version identified by the manifest, and that the Selected Firmware card reflects the transition
 from Outdated to Current.
 
 ### Test Data
@@ -767,7 +874,7 @@ from Outdated to Current.
 https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-outdated.json
 ```
 
-Manifest A identifies `replacement.bin` with a checksum that does not match the copy initially 
+Manifest A identifies `replacement.bin` with a checksum that does not match the copy initially
 placed in the repository and specifies an unavailable URL for the replacement file.
 
 **Manifest B URL:**
@@ -776,7 +883,7 @@ placed in the repository and specifies an unavailable URL for the replacement fi
 https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-current.json
 ```
 
-Manifest B identifies `replacement.bin` with the checksum of the replacement file and 
+Manifest B identifies `replacement.bin` with the checksum of the replacement file and
 specifies the URL from which the replacement file can be downloaded.
 
 The replacement file SHA-256 is:
@@ -846,6 +953,7 @@ adb shell am start \
 6. Return to the main screen.
 7. Verify that the Selected Firmware card identifies `replacement.bin` as **Outdated**.
 8. Set the manifest URL override to Manifest B:
+
    ```bash
    adb shell am start \
      -n com.holfuy.configtool/.DebugManifestActivity \
@@ -856,10 +964,13 @@ adb shell am start \
 10. Wait for the refresh to complete.
 11. Verify that the Selected Firmware card identifies `replacement.bin` as **Current**.
 12. Verify that the SHA-256 of the repository file is the replacement-image SHA-256:
+
     ```bash
     adb shell sha256sum /sdcard/Download/HolfuyTest-Replacement/replacement.bin
     ```
+
     Expected SHA-256:
+
     ```text
     f3ad11014246cc9c67d2b3a5fda4bdb1ea8bc5ce6d0268de3487accdb32e6a77
     ```
@@ -869,13 +980,11 @@ adb shell am start \
 
 ### Expected Results
 
-- The existing `replacement.bin` is classified as **Outdated** when its checksum does not match the checksum specified by Manifest A.
-- The Selected Firmware card identifies the selected file as **Outdated**.
-- After Manifest B is selected and the repository is successfully refreshed, the Outdated file is replaced by the version identified by Manifest B.
-- The Selected Firmware card automatically changes the disposition of the selected file from **Outdated** to **Current**.
-- The repository file after replacement has the SHA-256 specified by Manifest B.
-- The Select Firmware screen identifies the replaced file as **Current**.
-- The replaced file remains selected.
+* Application satisfies the VS-REPO-OUTDATED and VS-REPO-CURRENT expected behavioral properties.
+* After Manifest B is selected and the repository is successfully refreshed, the selected firmware transitions from **Outdated** to **Current**.
+* The repository file after replacement has the SHA-256 specified by Manifest B.
+* The firmware selection is retained after replacement.
+
 
 ---
 
@@ -895,10 +1004,10 @@ Verify that firmware files larger than 200 kB or having an extension other than 
 
 The `SizeExtension` test fixture contains:
 
-- `valid_exactly_200kB.bin` — exactly 200 kB and has a `.bin` extension.
-- `too_large.bin` — larger than 200 kB and has a `.bin` extension.
-- `wrong_extension.txt` — no larger than 200 kB and has an extension other than `.bin`.
-- `wrong_extension_too_large.txt` — larger than 200 kB and has an extension other than `.bin`.
+* `valid_exactly_200kB.bin` — exactly 200 kB and has a `.bin` extension.
+* `too_large.bin` — larger than 200 kB and has a `.bin` extension.
+* `wrong_extension.txt` — no larger than 200 kB and has an extension other than `.bin`.
+* `wrong_extension_too_large.txt` — larger than 200 kB and has an extension other than `.bin`.
 
 The test repository on the Android device contains all four files.
 
@@ -929,12 +1038,82 @@ The test repository on the Android device contains all four files.
 
 ### Expected Results
 
-- `valid_exactly_200kB.bin` is listed on the Select Firmware screen.
-- `too_large.bin` is not listed on the Select Firmware screen.
-- `wrong_extension.txt` is not listed on the Select Firmware screen.
-- `wrong_extension_too_large.txt` is not listed on the Select Firmware screen.
-- A Browse selection of `too_large.bin` is rejected with the appropriate size error.
-- A Browse selection of `wrong_extension.txt` is rejected with the appropriate extension error.
-- A Browse selection of `wrong_extension_too_large.txt` is rejected with the appropriate combined error.
-- An invalid Browse selection does not become the selected firmware.
+* `valid_exactly_200kB.bin` is listed on the Select Firmware screen.
+* `too_large.bin` is not listed on the Select Firmware screen.
+* `wrong_extension.txt` is not listed on the Select Firmware screen.
+* `wrong_extension_too_large.txt` is not listed on the Select Firmware screen.
+* A Browse selection of `too_large.bin` is rejected with the appropriate size error.
+* A Browse selection of `wrong_extension.txt` is rejected with the appropriate extension error.
+* A Browse selection of `wrong_extension_too_large.txt` is rejected with the appropriate combined error.
+* An invalid Browse selection does not become the selected firmware.
 
+---
+
+## TC-024 — Invalid Firmware Manifest
+
+**Reference Workflow:** WF-001
+
+**Classification:** Regression
+
+**Variation:** VS-REPO-INVALID-MANIFEST
+
+### Purpose
+
+Verify that an invalid firmware manifest does not alter the existing firmware 
+repository or selected firmware, and that the application clearly indicates the manifest is invalid.
+
+### Test Data
+
+**Manifest URL overrides:**
+
+`invalid_json.json`:
+
+    https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/invalid_json.json
+
+`missing_sha256.json`:
+
+    https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/missing_sha256.json
+
+### Preconditions
+
+1. Application Session: Persistent.
+2. The firmware repository is configured and contains at least one Current firmware file.
+3. A Current firmware file is selected.
+4. The Android device has an Internet connection.
+
+### Procedure
+
+1. Open the application.
+2. Verify that the Selected Firmware card identifies the selected firmware as **Current**.
+3. Set the manifest URL override to `invalid_json.json`:
+
+       adb shell am start \
+         -n com.holfuyconfigtool/.DebugManifestActivity \
+         -a com.holfuyconfigtool.debug.SET_MANIFEST_URL \
+         --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/invalid_json.json"
+
+4. Cause the application to resume, initiating a repository refresh.
+5. Wait for the refresh to complete.
+6. Verify that the application displays an invalid-manifest error indication.
+7. Verify that the Selected Firmware card still identifies the selected firmware as **Current**.
+8. Tap **Select Firmware**.
+9. Verify that the previously selected firmware is still listed with disposition **Current**.
+10. Return to the main screen.
+11. Set the manifest URL override to `missing_sha256.json`:
+
+       adb shell am start \
+         -n com.holfuyconfigtool/.DebugManifestActivity \
+         -a com.holfuyconfigtool.debug.SET_MANIFEST_URL \
+         --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/missing_sha256.json"
+
+12. Cause the application to resume, initiating a repository refresh.
+13. Wait for the refresh to complete.
+14. Verify that the application displays an invalid-manifest error indication.
+15. Verify that the Selected Firmware card still identifies the selected firmware as **Current**.
+16. Tap **Select Firmware**.
+17. Verify that the previously selected firmware is still listed with disposition **Current**.
+18. Return to the main screen.
+
+### Expected Results
+
+- Application satisfies the VS-REPO-INVALID-MANIFEST expected behavioral property.
