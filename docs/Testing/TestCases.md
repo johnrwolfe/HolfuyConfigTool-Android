@@ -520,7 +520,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-1, 3, 4, 6, 7, 8: VS-HELP
+**Variation:** IP-1, 4, 6, 7, 8: VS-HELP
 
 **Expected Results**
 
@@ -548,7 +548,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression, Compatibility
 
-**Variation:** IP-9: Configure the firmware repository.
+**Variation:** IP-9, 10: VS-LIFE
 
 **Expected Results**
 

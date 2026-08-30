@@ -91,9 +91,9 @@ Representative actions:
 * Screen timeout.
 * Back.
 
-| Interruption Point |   IP-1  |  IP-2  |   IP-4  |  IP-5  |  IP-6  |   IP-7  |   IP-8  | IP-9 | IP-10 |
-| ------------------ | :-----: | :----: | :-----: | :-----: | :----: | :----: | :-----: | :--: | :---: |
-| Coverage           | =TC-009 | TC-013 | =TC-009 | TC-008 | TC-009 | =TC-009 | =TC-009 |  TBD |  TBD  |
+| Interruption Point |   IP-1  |  IP-2  |   IP-4  |  IP-5  |  IP-6  |   IP-7  |   IP-8  | IP-9   | IP-10  |
+| ------------------ | :-----: | :----: | :-----: | :-----: | :----: | :----: | :-----: | :----: | :----: |
+| Coverage           | =TC-009 | TC-013 | =TC-009 | TC-008 | TC-009 | =TC-009 | =TC-009 | TC-018 | TC-018 |
 
 **Rationale**
 
@@ -229,7 +229,7 @@ the current application changes, so TC-007 provides sufficient coverage.
 
 | Interruption Point              |   IP-9  |    IP-10   |
 | ------------------------------- | :-----: | :--------: |
-| Android Lifecycle               | =TC-009 |   TC-020   |
+| Android Lifecycle               | =TC-009 |   TC-018   |
 | Configure Repository            |    N    |   TC-018   |
 | Cancel Repository Configuration |    N    |   TC-019   |
 
