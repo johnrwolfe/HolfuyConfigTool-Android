@@ -264,8 +264,8 @@ firmware already present in the repository.
 | Behavior                                                  | Coverage |
 | --------------------------------------------------------- | -------- |
 | Manifest successfully retrieved                           | TC-021   |
-| Manifest retrieval fails                                  | TBD      |
-| Existing repository remains usable after manifest failure | TBD      |
+| Manifest retrieval fails                                  | TC-020   |
+| Existing repository remains usable after manifest failure | TC-020   |
 
 ---
 
@@ -290,7 +290,7 @@ repository. The application uses the `path` attribute to locate firmware files.
 | Multiple modem types listed in manifest                   | TC-001   |
 | Each listed firmware file is downloaded                   | TC-001   |
 | New modem type can be added without an application update | TC-021   |
-| Malformed or unexpected manifest content                  | TBD      |
+| Malformed or unexpected manifest content                  | TC-024   |
 
 ---
 

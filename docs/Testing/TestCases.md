@@ -74,23 +74,20 @@ but the user may select any directory permitted by the Android framework.
 
 # Application Session States
 
-Application Session State identifies the persistent state of Holfuy Upgrader
-when a test begins.
+Application Session State identifies the state of Holfuy Upgrader when a test begins.
 
 | State      | Definition                                                                                                                                                                                  |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Fresh      | The application has been newly installed, or has been stopped with its application data cleared. No firmware selection is retained and the firmware repository has not yet been configured. |
-| Persistent | The application has previously been used and retains its configured firmware repository and, if one was previously selected, its firmware selection.                                        |
+| Repository Configured | A firmware repository is configured, but no firmware selection exists. |
+| Firmware Selected | A firmware repository is configured and a firmware selection is retained. |
 
 ## Default Assumptions
 
-Unless otherwise specified, a test may begin in either Application Session State.
+Unless otherwise specified, a test may begin in any Application Session State.
 
 A test case specifies an Application Session state only when the expected
-behavior differs between the `Fresh` and `Persistent` states.
-
-Where the retained firmware selection affects the behavior being tested, the
-required Application Session State is specified explicitly as a precondition.
+behavior differs between the states.
 
 ---
 
@@ -316,7 +313,7 @@ Expected behavioral property:
 
 ---
 
-### VS-REPO-MANIFEST-MALFORMED
+### VS-REPO-INVALID-MANIFEST
 
 The firmware repository manifest is successfully retrieved but contains
 malformed or unexpected content.
@@ -355,7 +352,7 @@ Expected behavioral property:
 
 **Preconditions**
 
-* Application Session: Fresh and Persistent
+* Application Session: Fresh, Repository Configured, Firmware Selected -- execute the test once in each state.
 
 ---
 
@@ -511,9 +508,9 @@ Each test case below specifies expected results in addition to these:
 
 **Reference Workflow:** WF-001
 
-**Classification:** Regression
+**Classification:** Historical
 
-**Application Session:** Persistent
+**Application Session:** Firmware Selected
 
 **Variation:** IP-1: Retain the existing firmware selection.
 
@@ -532,7 +529,7 @@ Each test case below specifies expected results in addition to these:
 
 **Preconditions**
 
-* Application Session: Fresh and Persistent
+* Application Session: Fresh and Firmware Selected -- Execute test once in each state.
 
 ---
 
@@ -665,7 +662,7 @@ Each test case below specifies expected results in addition to these:
 
 **Classification:** Regression, Compatibility
 
-**Application Session:** Persistent
+**Application Session:** Firmware Selected
 
 ### Purpose
 
@@ -673,12 +670,8 @@ Verify that failure to retrieve the firmware repository manifest does not make a
 
 ### Preconditions
 
-1. Application Session: Persistent.
-2. The firmware repository is configured.
-3. The repository contains at least one valid firmware file.
-4. A repository firmware file is selected.
-5. The selected firmware is available and usable.
-6. The Android device has an Internet connection.
+1. The selected firmware is available and usable.
+2. The Android device has an Internet connection.
 
 ### Procedure
 
@@ -690,15 +683,17 @@ Verify that failure to retrieve the firmware repository manifest does not make a
 6. Disable Internet connectivity on the Android device.
 7. Cause the application to resume, initiating a repository refresh.
 8. Wait for the refresh to complete.
-9. Verify that the application reports or otherwise indicates that the manifest could not be retrieved.
+9. Verify that the application reports that the manifest could not be retrieved.
 10. Tap **Select Firmware**.
 11. Verify that the existing repository firmware remains available for selection.
 12. Return to the main screen.
 13. Verify that the previously selected firmware remains selected and usable.
-14. Restore Internet connectivity on the Android device.
-15. Cause the application to resume, initiating a repository refresh.
-16. Wait for the refresh to complete.
-17. Verify that normal repository synchronization resumes.
+14. Verify that the application reports the date and time of the last successful check for firmware.
+15. Verify that the application reports the date and time it was unable to check for firmware.
+16. Restore Internet connectivity on the Android device.
+17. Cause the application to resume, initiating a repository refresh.
+18. Wait for the refresh to complete.
+19. Verify that normal repository synchronization resumes.
 
 ### Expected Results
 
@@ -1076,7 +1071,7 @@ repository or selected firmware, and that the application clearly indicates the 
 
 ### Preconditions
 
-1. Application Session: Persistent.
+1. Application Session: Firmware Selected.
 2. The firmware repository is configured and contains at least one Current firmware file.
 3. A Current firmware file is selected.
 4. The Android device has an Internet connection.

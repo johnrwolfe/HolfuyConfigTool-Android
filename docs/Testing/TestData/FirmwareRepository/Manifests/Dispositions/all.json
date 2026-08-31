@@ -1,7 +1,7 @@
 {
   "firmwares": [
     {
-      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Disopositions/Current/Repository/current.bin",
+      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Current/Repository/current.bin",
       "modem": "TEST",
       "sha256": "97f7606d6c6849ec4c4c140dc25951465ab36fb1e667fec4ffef1437e0c00039"
     },
