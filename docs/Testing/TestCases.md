@@ -459,8 +459,9 @@ Each test case below specifies expected results in addition to these:
 **Preconditions**
 
 * Attach an unsupported USB device.
+* The Holfuy weather station is not connected.
 
-**Variation:** IP-4: VS-USB-UNSUPPORTED
+**Variation:** IP-1: VS-USB-UNSUPPORTED
 
 **Expected Results**
 

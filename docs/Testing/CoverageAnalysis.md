@@ -46,6 +46,11 @@ IP-3 has been retired as an Interruption Point. Its number is intentionally
 unused so that the remaining Interruption Point numbers do not need to be
 renumbered. It therefore does not appear in the coverage matrices.
 
+=TC-xxx indicates that the referenced test case directly exercises a behaviorally
+representative interruption point. The equivalence is based on the nature of the 
+application state and the expected lifecycle behavior, rather than requiring the 
+variation to be executed at every interruption point.
+
 ---
 
 # WF-001 — Firmware Update
@@ -229,16 +234,12 @@ the current application changes, so TC-007 provides sufficient coverage.
 
 | Interruption Point              |   IP-9  |    IP-10   |
 | ------------------------------- | :-----: | :--------: |
-| Android Lifecycle               | =TC-009 |   TC-018   |
+| Android Lifecycle               | TC-018  |   TC-018   |
 | Configure Repository            |    N    |   TC-018   |
 | Cancel Repository Configuration |    N    |   TC-019   |
 
 
 Rationale
-
-IP-9 is application-controlled and is covered by the existing lifecycle test.
-IP-10 is Android-controlled and is covered by the existing document-picker 
-lifecycle test.
 
 Selecting a permitted directory is the canonical repository-configuration test.
 Because the application imposes no additional constraints on the directory 
@@ -310,47 +311,13 @@ custom firmware files placed there by the user.
 
 # Application Session State
 
-The following session states are relevant to the coverage analysis.
+Coverage by Application Session State is evaluated using the session-state definitions established in the test suite.
 
-| State      | Description                                                                                                                      |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Fresh      | Newly installed application or application stopped with data cleared; repository is not configured; no firmware selection exists |
-| Persistent | Previously used application retaining its firmware selection and repository configuration                                        |
+The matrix identifies the Application Session States from which each behavioral area is explicitly exercised. 
 
-Unless otherwise specified, either session state is acceptable for a test.
 
-The Fresh/Persistent distinction is particularly relevant to:
-
-* Firmware selection.
-* Repository configuration.
-* Repository synchronization.
-* Persistence of firmware selections.
-
-| Behavioral Area          | Fresh | Persistent |
-| ------------------------ | :---: | :--------: |
-| Firmware selection       | TC-001|   TC-001   |
-| Repository configuration | TC-001|      N     |
-| Manifest synchronization | TC-021|   TC-021   |
-| Repository contents      | TC-021|   TC-021   |
-
----
-
-# Coverage Gaps
-
-The following areas currently require additional analysis or test cases.
-
-1. Lifecycle behavior at IP-9 and within the Android directory picker at IP-10.
-2. Repository directory navigation, creation, selection, and cancellation.
-3. Repository configuration during a Fresh session.
-4. Firmware selection from the repository.
-5. Firmware selection through **Browse** and the Android document picker.
-6. Selection of automatically downloaded versus custom repository firmware.
-7. Bootloader timeout coverage at the remaining meaningful WF-001 IPs.
-8. Manifest retrieval success and failure.
-9. Firmware download success and failure.
-10. Continued operation using existing firmware after synchronization failure.
-11. Manifest support for multiple modem types and future modem types.
-12. Interaction between Fresh/Persistent application sessions and repository
-    synchronization.
-13. Any additional behavioral differences revealed while defining the new
-    repository and download test cases.
+| Behavioral Area            |  Fresh | Repository Configured | Firmware Selected |
+| -------------------------- | :----: | :-------------------: | :---------------: |
+| Repository Configuration   | TC-018 |           —           |         —         |
+| Firmware Selection         | TC-001 |         TC-001        |       TC-001      |
+| Repository Synchronization | TC-001 |         TC-001        |       TC-001      |
