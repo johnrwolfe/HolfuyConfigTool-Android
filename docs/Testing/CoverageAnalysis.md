@@ -257,8 +257,8 @@ workflow.
 Whenever the application is opened, it attempts to retrieve the manifest and
 download the latest firmware files identified by the manifest.
 
-Failure to retrieve firmware files must not prevent normal operation using
-firmware already present in the repository.
+Failure to retrieve or update repository content must not prevent normal operation
+using firmware already present in the repository or elsewhere on the device.
 
 ## Manifest Retrieval
 
@@ -291,11 +291,11 @@ repository. The application uses the `path` attribute to locate firmware files.
 | Multiple modem types listed in manifest                   | TC-001   |
 | Each listed firmware file is downloaded                   | TC-001   |
 | New modem type can be added without an application update | TC-021   |
-| Malformed or unexpected manifest content                  | TC-024   |
+| Invalid manifest                                          | TC-024   |
 
 ---
 
-## Repository Contents
+## Repository Firmware
 
 The repository can contain both firmware downloaded by the application and
 custom firmware files placed there by the user.
@@ -305,7 +305,6 @@ custom firmware files placed there by the user.
 | Automatically downloaded firmware is retained                  | TC-021   |
 | Custom firmware is retained                                    | TC-021   |
 | Both types appear in Select Firmware                           | TC-021   |
-| Existing firmware remains usable after synchronization failure | TC-021   |
 
 ---
 
