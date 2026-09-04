@@ -121,37 +121,37 @@ class MainViewModel(
     fun connect()
     {
         Log.d(TAG, "connect() called")
-
-        viewModelScope.launch {
-
+    
+        viewModelScope.launch(Dispatchers.IO) {
+    
             uiState = uiState.copy(
                 connecting = true,
                 errorMessage = null
             )
-
+    
             try {
-
+    
                 if (!holfuyDevice.connect()) {
-
+    
                     uiState = uiState.copy(
                         errorMessage = "Connection failed"
                     )
                 }
             }
             catch (e: Exception) {
-
+    
                 Log.e(
                     TAG,
                     "Connect failed",
                     e
                 )
-
+    
                 uiState = uiState.copy(
                     errorMessage = e.message
                 )
             }
             finally {
-
+    
                 uiState = uiState.copy(
                     connecting = false
                 )
