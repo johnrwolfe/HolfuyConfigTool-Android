@@ -636,8 +636,6 @@ Each test case below specifies expected results in addition to these:
 
 **Expected Results**
 
-### Expected Results
-
 - Application satisfies the VS-REPO-CONFIG and VS-LIFE expected behavioral properties.
 
 ---
@@ -1084,8 +1082,8 @@ repository or selected firmware, and that the application clearly indicates the 
 3. Set the manifest URL override to `invalid_json.json`:
 
        adb shell am start \
-         -n com.holfuyconfigtool/.DebugManifestActivity \
-         -a com.holfuyconfigtool.debug.SET_MANIFEST_URL \
+         -n com.holfuy.configtool/.DebugManifestActivity \
+         -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
          --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/invalid_json.json"
 
 4. Cause the application to resume, initiating a repository refresh.
@@ -1098,8 +1096,8 @@ repository or selected firmware, and that the application clearly indicates the 
 11. Set the manifest URL override to `missing_sha256.json`:
 
        adb shell am start \
-         -n com.holfuyconfigtool/.DebugManifestActivity \
-         -a com.holfuyconfigtool.debug.SET_MANIFEST_URL \
+         -n com.holfuy.configtool/.DebugManifestActivity \
+         -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
          --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/missing_sha256.json"
 
 12. Cause the application to resume, initiating a repository refresh.

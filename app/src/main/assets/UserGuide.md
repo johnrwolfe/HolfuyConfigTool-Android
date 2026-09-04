@@ -46,7 +46,7 @@ create one within that folder, such as `Download/HolfuyFirmware`.
 
 If you need to re-configure the firmware repository, clear the app's data and then open the app again.
 
-Each time the app is opened, it attempts to update the firmware repository, and this requires an Internet connection.
+Each time the app is resumed, it attempts to update the firmware repository, and this requires an Internet connection.
 Typically, this process takes only a few seconds.
 A message indicates when the repository was last successfully checked.
 If a failure has occurred since that last successful check, a separate message indicates when the failure occurred.
