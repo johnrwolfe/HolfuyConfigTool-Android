@@ -231,10 +231,10 @@ fun MainScreen(
         )
 
         Button(
-            enabled =
-                deviceState.attached &&
+            enabled = deviceState.attached &&
                     !deviceState.connected &&
-                    !deviceState.updateInProgress,
+                    !deviceState.updateInProgress &&
+                    !uiState.connecting,
             onClick = onConnectClick
         ) {
             Text(
