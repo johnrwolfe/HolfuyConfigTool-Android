@@ -13,8 +13,9 @@ interface FirmwareFile
     /**
      * Returns whether the underlying file currently exists.
      *
-     * name and size are immutable snapshots; exists() queries
-     * the current state of the underlying storage.
+     * name and size are immutable snapshots because the UI must display
+     * them even when the file itself does not currently exist on the device;
+     * exists() queries the current state of the underlying storage.
      */
     fun exists(): Boolean
 

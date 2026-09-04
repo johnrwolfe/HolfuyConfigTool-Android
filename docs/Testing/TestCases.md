@@ -966,11 +966,13 @@ adb shell am start \
     Expected SHA-256:
 
     ```text
-    f3ad11014246cc9c67d2b3a5fda4bdb1ea8bc5ce6d0268de3487accdb32e6a77
+    e04f5d5d28d2c647101686a8048f0c20fd5589a8fa395976a5ecd80485d6b1ce
     ```
 13. Tap **Select Firmware**.
 14. Verify that `replacement.bin` is listed with disposition **Current**.
 15. Verify that `replacement.bin` remains selected.
+16. Tap **Update Firmware**.
+17. Ensure firmware update completes successfully.
 
 ### Expected Results
 

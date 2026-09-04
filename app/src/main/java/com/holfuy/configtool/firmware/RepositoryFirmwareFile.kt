@@ -22,8 +22,14 @@ class RepositoryFirmwareFile(
 
     override fun openInputStream(): InputStream
     {
+        val currentFile =
+            storage.find(name)
+                ?: error(
+                    "Repository file '$name' does not exist."
+                )
+
         return storage.openInputStream(
-            documentFile
+            currentFile
         )
     }
 }
