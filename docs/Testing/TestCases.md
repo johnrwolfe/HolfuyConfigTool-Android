@@ -971,8 +971,12 @@ adb shell am start \
 13. Tap **Select Firmware**.
 14. Verify that `replacement.bin` is listed with disposition **Current**.
 15. Verify that `replacement.bin` remains selected.
-16. Tap **Update Firmware**.
-17. Ensure firmware update completes successfully.
+16. Tap **Cancel** to return to the main screen.
+17. Verify that `replacement.bin` remains selected.
+18. Notice that the size of the file is 39 bytes, which is not accurate, but it is expected.
+19. Disconnect the Android device from the development host and connect it to the station.
+20. Continue with the firmware update process using the selected `replacement.bin` file.
+21. Ensure firmware update completes successfully.
 
 ### Expected Results
 
@@ -980,7 +984,7 @@ adb shell am start \
 * After Manifest B is selected and the repository is successfully refreshed, the selected firmware transitions from **Outdated** to **Current**.
 * The repository file after replacement has the SHA-256 specified by Manifest B.
 * The firmware selection is retained after replacement.
-
+* The firmware update process completes successfully.
 
 ---
 
