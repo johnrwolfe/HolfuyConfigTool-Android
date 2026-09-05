@@ -15,11 +15,13 @@ import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.state.MainUiState
 import com.holfuy.configtool.ui.state.SelectedFirmware
+import com.holfuy.configtool.usb.UsbDeviceProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val holfuyDevice: HolfuyDevice,
+    private val usbDeviceProvider: UsbDeviceProvider,
     private val firmwareRepository: FirmwareRepository
 ) : ViewModel()
 {
@@ -118,20 +120,25 @@ class MainViewModel(
         )
     }
     
-    fun refreshUsbState(
-        attached: Boolean,
-        permissionGranted: Boolean
-    )
+    fun refreshUsbState()
     {
+        val usbDevice =
+            usbDeviceProvider.findDevice()
+    
+        val permissionGranted =
+            usbDevice?.let {
+                usbDeviceProvider.hasPermission(it)
+            } ?: false
+    
         DeviceRepository.setAttached(
-            attached
+            usbDevice != null
         )
     
         DeviceRepository.setPermissionGranted(
             permissionGranted
         )
     
-        if (!attached) {
+        if (usbDevice == null) {
             DeviceRepository.clearConnectionState()
         }
     }

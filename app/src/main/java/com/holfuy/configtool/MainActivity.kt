@@ -141,22 +141,6 @@ class MainActivity : ComponentActivity()
             }
     }
     
-    private fun refreshUsbState()
-    {
-        val usbDevice =
-            findSupportedUsbDevice()
-    
-        val permissionGranted =
-            usbDevice?.let {
-                usbManager.hasPermission(it)
-            } ?: false
-    
-        activityViewModel.refreshUsbState(
-            attached = usbDevice != null,
-            permissionGranted = permissionGranted
-        )
-    }
-    
     // true = permission already granted
     // false = permission not granted yet but has been requested
     //         if a supported device is attached
@@ -287,7 +271,7 @@ class MainActivity : ComponentActivity()
                     "Supported USB device attached"
                 )
     
-                refreshUsbState()
+                activityViewModel.refreshUsbState()
     
                 activityViewModel.clearFirmwareUpdateInterrupted()
             }
@@ -355,7 +339,7 @@ class MainActivity : ComponentActivity()
                 PendingIntent.FLAG_MUTABLE
             )
     
-        refreshUsbState()
+        activityViewModel.refreshUsbState()
     
         setContent {
             HolfuyConfigToolTheme {
@@ -604,7 +588,7 @@ class MainActivity : ComponentActivity()
     {
         super.onResume()
     
-        refreshUsbState()
+        activityViewModel.refreshUsbState()
     
         Log.i(
             TAG,
