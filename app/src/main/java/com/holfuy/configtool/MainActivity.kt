@@ -25,15 +25,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModelProvider
 import com.holfuy.configtool.device.DeviceRepository
-import com.holfuy.configtool.device.HolfuyDevice
-import com.holfuy.configtool.device.RealHolfuyDevice
 import com.holfuy.configtool.firmware.FIRMWARE_EXTENSION
-import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.firmware.MAX_FIRMWARE_SIZE
 import com.holfuy.configtool.firmware.MIN_FIRMWARE_SIZE
-import com.holfuy.configtool.firmware.ManifestConfiguration
-import com.holfuy.configtool.firmware.RepositoryStorage
 import com.holfuy.configtool.firmware.UriFirmwareFile
+import com.holfuy.configtool.HolfuyApplication
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
 import com.holfuy.configtool.ui.screens.RepositoryConfigurationScreen
@@ -42,9 +38,7 @@ import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.theme.HolfuyConfigToolTheme
 import com.holfuy.configtool.ui.viewmodel.MainViewModel
 import com.holfuy.configtool.ui.viewmodel.MainViewModelFactory
-import com.holfuy.configtool.usb.AndroidUsbDeviceProvider
 import com.holfuy.configtool.usb.HolfuyUsb
-import com.holfuy.configtool.usb.UsbDeviceProvider
 
 
 class MainActivity : ComponentActivity()
@@ -60,8 +54,6 @@ class MainActivity : ComponentActivity()
     private lateinit var permissionIntent: PendingIntent 
     private lateinit var activityViewModel: MainViewModel
     private lateinit var usbManager: UsbManager
-    private lateinit var holfuyDevice: HolfuyDevice
-    private lateinit var usbDeviceProvider: UsbDeviceProvider
     
     private fun getDisplayName(
         contentResolver: ContentResolver,
@@ -154,23 +146,19 @@ class MainActivity : ComponentActivity()
         val usbDevice =
             findSupportedUsbDevice()
     
-        DeviceRepository.setAttached(
-            usbDevice != null
-        )
-    
-        DeviceRepository.setPermissionGranted(
+        val permissionGranted =
             usbDevice?.let {
                 usbManager.hasPermission(it)
             } ?: false
-        )
     
-        if (usbDevice == null) {
-            DeviceRepository.clearConnectionState()
-        }
+        activityViewModel.refreshUsbState(
+            attached = usbDevice != null,
+            permissionGranted = permissionGranted
+        )
     }
     
     // true = permission already granted
-    // false = permission not granted yet but has been requested 
+    // false = permission not granted yet but has been requested
     //         if a supported device is attached
     private fun ensureUsbPermission(): Boolean
     {
@@ -185,7 +173,9 @@ class MainActivity : ComponentActivity()
                 "USB permission already granted"
             )
     
-            DeviceRepository.setPermissionGranted(true)
+            activityViewModel.setUsbPermissionGranted(
+                true
+            )
     
             return true
         }
@@ -243,6 +233,7 @@ class MainActivity : ComponentActivity()
                     TAG,
                     "intent extras=${intent.extras}"
                 )
+    
                 Log.i(
                     TAG,
                     "usbPermissionReceiver action=${intent.action}"
@@ -263,17 +254,16 @@ class MainActivity : ComponentActivity()
                     "USB permission response received granted=$granted"
                 )
     
-                DeviceRepository.setPermissionGranted(
+                activityViewModel.setUsbPermissionGranted(
                     granted
                 )
-                
+    
                 if (granted) {
-                
                     activityViewModel.connect()
                 }
             }
         }
-        
+            
     private val usbAttachReceiver =
         object : BroadcastReceiver()
         {
@@ -298,7 +288,7 @@ class MainActivity : ComponentActivity()
                 )
     
                 refreshUsbState()
-                
+    
                 activityViewModel.clearFirmwareUpdateInterrupted()
             }
         }
@@ -326,22 +316,7 @@ class MainActivity : ComponentActivity()
                     "Supported USB device detached"
                 )
     
-                val updateInProgress =
-                    DeviceRepository.state.updateInProgress
-    
-                holfuyDevice.onUsbDetached()
-    
-                if (updateInProgress) {
-    
-                    activityViewModel.firmwareUpdateInterrupted()
-                }
-    
-                DeviceRepository.clearConnectionState()
-    
-                if (!updateInProgress) {
-    
-                    activityViewModel.clearTransientStatus()
-                }
+                activityViewModel.onUsbDetached()
             }
         }
     
@@ -359,28 +334,14 @@ class MainActivity : ComponentActivity()
                 Context.USB_SERVICE
             ) as UsbManager
     
-        usbDeviceProvider =
-            AndroidUsbDeviceProvider(
-                usbManager
-            )
+        val application =
+            application as HolfuyApplication
     
-        holfuyDevice =
-            RealHolfuyDevice(
-                usbManager,
-                usbDeviceProvider
-            )
-    
-        val repositoryStorage =
-            RepositoryStorage(this)
-    
-        val manifestConfiguration =
-            ManifestConfiguration(this)
-    
-        val firmwareRepository =
-            FirmwareRepository(
-                repositoryStorage,
-                manifestConfiguration
-            )
+        activityViewModel =
+            ViewModelProvider(
+                this,
+                application.mainViewModelFactory
+            )[MainViewModel::class.java]
     
         registerReceivers()
     
@@ -395,18 +356,6 @@ class MainActivity : ComponentActivity()
             )
     
         refreshUsbState()
-    
-        val factory =
-            MainViewModelFactory(
-                holfuyDevice,
-                firmwareRepository
-            )
-    
-        activityViewModel =
-            ViewModelProvider(
-                this,
-                factory
-            )[MainViewModel::class.java]
     
         setContent {
             HolfuyConfigToolTheme {
@@ -450,7 +399,7 @@ class MainActivity : ComponentActivity()
                         contract =
                             ActivityResultContracts.GetContent()
                     ) { uri: Uri? ->
-                
+    
                         if (uri == null) {
                             /*
                              * Browse was cancelled. Remain on the
@@ -459,13 +408,13 @@ class MainActivity : ComponentActivity()
                              */
                             return@rememberLauncherForActivityResult
                         }
-                
+    
                         val fileName =
                             getDisplayName(
                                 contentResolver,
                                 uri
                             )
-                
+    
                         val fileSize =
                             contentResolver
                                 .openAssetFileDescriptor(
@@ -476,17 +425,17 @@ class MainActivity : ComponentActivity()
                                     descriptor.length
                                 }
                                 ?: -1L
-                
+    
                         if (fileSize < 0) {
-                
+    
                             Log.w(
                                 TAG,
                                 "Unable to determine size of selected firmware: $fileName"
                             )
-                
+    
                             return@rememberLauncherForActivityResult
                         }
-                
+    
                         if (
                             fileSize < MIN_FIRMWARE_SIZE ||
                             fileSize > MAX_FIRMWARE_SIZE ||
@@ -495,39 +444,41 @@ class MainActivity : ComponentActivity()
                                 ignoreCase = true
                             )
                         ) {
-                        
+    
                             Log.w(
                                 TAG,
                                 "Rejected firmware selection: $fileName ($fileSize bytes)"
                             )
-                        
+    
                             val reason =
                                 when {
                                     !fileName.endsWith(
                                         FIRMWARE_EXTENSION,
                                         ignoreCase = true
                                     ) &&
-                                        (fileSize < MIN_FIRMWARE_SIZE ||
-                                            fileSize > MAX_FIRMWARE_SIZE) ->
+                                        (
+                                            fileSize < MIN_FIRMWARE_SIZE ||
+                                                fileSize > MAX_FIRMWARE_SIZE
+                                        ) ->
                                         "The selected file must be a .bin file at least 48 bytes and no larger than 200 kB."
-                            
+    
                                     fileSize < MIN_FIRMWARE_SIZE ->
                                         "The selected file is too small. Firmware files must be at least 48 bytes."
-                            
+    
                                     fileSize > MAX_FIRMWARE_SIZE ->
                                         "The selected file is too large. Firmware files must be no larger than 200 kB."
-                            
+    
                                     else ->
                                         "The selected file is not a .bin firmware file."
                                 }
-                        
+    
                             viewModel.setFirmwareSelectionError(
                                 reason
                             )
-                        
+    
                             return@rememberLauncherForActivityResult
                         }
-                
+    
                         val file =
                             UriFirmwareFile(
                                 context = this@MainActivity,
@@ -535,20 +486,20 @@ class MainActivity : ComponentActivity()
                                 name = fileName,
                                 size = fileSize
                             )
-                
+    
                         Log.i(
                             TAG,
                             "Selected firmware: ${file.name} (${file.size} bytes)"
                         )
-                
+    
                         viewModel.setFirmware(
                             file,
                             FirmwareSelectionSource.BROWSE
                         )
-                
+    
                         showFirmwareSelection = false
-                    }    
-                    
+                    }
+    
                 val deviceState by
                     viewModel.deviceStateFlow.collectAsState()
     
@@ -572,36 +523,36 @@ class MainActivity : ComponentActivity()
                     )
     
                 } else if (showFirmwareSelection) {
-                
+    
                     SelectFirmwareScreen(
                         repositoryStatus =
                             viewModel.repositoryStatus,
-                
+    
                         selectedFirmware =
                             viewModel.uiState.selectedFirmware?.file,
-                         
+    
                         firmwareSelectionError =
                             viewModel.uiState.firmwareSelectionError,
-                        
+    
                         selectedFirmwareSource =
                             viewModel.uiState.selectedFirmware?.source,
-                        
+    
                         onSelect = { file, modem ->
-                        
+    
                             viewModel.setFirmware(
                                 file,
                                 FirmwareSelectionSource.REPOSITORY,
                                 modem
                             )
-                        
+    
                             showFirmwareSelection = false
                         },
-                
+    
                         onBrowse = {
                             viewModel.clearFirmwareSelectionError()
                             firmwarePicker.launch("*/*")
                         },
-                
+    
                         onBack = {
                             showFirmwareSelection = false
                         }
@@ -617,9 +568,7 @@ class MainActivity : ComponentActivity()
                             ::connectOrRequestPermission,
     
                         onSelectFirmwareClick = {
-    
                             activityViewModel.clearTransientStatus()
-    
                             showFirmwareSelection = true
                         },
     
@@ -656,14 +605,14 @@ class MainActivity : ComponentActivity()
         super.onResume()
     
         refreshUsbState()
-        
+    
         Log.i(
             TAG,
-            "onResume attached=${DeviceRepository.stateFlow.value.attached} permissionGranted=${DeviceRepository.stateFlow.value.permissionGranted}"
+            "onResume attached=${DeviceRepository.stateFlow.value.attached} " +
+                "permissionGranted=${DeviceRepository.stateFlow.value.permissionGranted}"
         )
     
         activityViewModel.onResume()
-
     }
     
     override fun onConfigurationChanged(

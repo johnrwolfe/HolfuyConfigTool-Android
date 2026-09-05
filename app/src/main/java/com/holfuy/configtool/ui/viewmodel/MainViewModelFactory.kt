@@ -8,8 +8,8 @@ import com.holfuy.configtool.firmware.FirmwareRepository
 class MainViewModelFactory(
     private val holfuyDevice: HolfuyDevice,
     private val firmwareRepository: FirmwareRepository
-) : ViewModelProvider.Factory {
-
+) : ViewModelProvider.Factory
+{
     override fun <T : ViewModel> create(
         modelClass: Class<T>
     ): T

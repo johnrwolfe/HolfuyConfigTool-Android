@@ -117,6 +117,56 @@ class MainViewModel(
                 file.exists()
         )
     }
+    
+    fun refreshUsbState(
+        attached: Boolean,
+        permissionGranted: Boolean
+    )
+    {
+        DeviceRepository.setAttached(
+            attached
+        )
+    
+        DeviceRepository.setPermissionGranted(
+            permissionGranted
+        )
+    
+        if (!attached) {
+            DeviceRepository.clearConnectionState()
+        }
+    }
+    
+    fun setUsbPermissionGranted(
+        granted: Boolean
+    )
+    {
+        DeviceRepository.setPermissionGranted(
+            granted
+        )
+    }
+    
+    fun onUsbDetached()
+    {
+        Log.i(
+            TAG,
+            "onUsbDetached()"
+        )
+    
+        val updateInProgress =
+            DeviceRepository.state.updateInProgress
+    
+        holfuyDevice.onUsbDetached()
+    
+        if (updateInProgress) {
+            firmwareUpdateInterrupted()
+        }
+    
+        DeviceRepository.clearConnectionState()
+    
+        if (!updateInProgress) {
+            clearTransientStatus()
+        }
+    }
 
     fun connect()
     {
