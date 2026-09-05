@@ -28,6 +28,7 @@ import com.holfuy.configtool.firmware.FIRMWARE_EXTENSION
 import com.holfuy.configtool.firmware.FirmwareFile
 import com.holfuy.configtool.firmware.FirmwareStatus
 import com.holfuy.configtool.firmware.MAX_FIRMWARE_SIZE
+import com.holfuy.configtool.firmware.MIN_FIRMWARE_SIZE
 import com.holfuy.configtool.firmware.RepositoryStatus
 import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 
@@ -43,7 +44,8 @@ private fun isSelectable(
             is FirmwareStatus.Missing -> return false
         }
 
-    return file.size <= MAX_FIRMWARE_SIZE &&
+    return file.size >= MIN_FIRMWARE_SIZE &&
+        file.size <= MAX_FIRMWARE_SIZE &&
         file.name.endsWith(
             FIRMWARE_EXTENSION,
             ignoreCase = true

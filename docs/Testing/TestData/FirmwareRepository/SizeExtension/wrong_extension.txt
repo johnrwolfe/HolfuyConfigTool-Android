@@ -1,1 +1,1 @@
-Test firmware selection file.
+Test firmware selection file with an invalid extension, even though it fits within the size constraints.

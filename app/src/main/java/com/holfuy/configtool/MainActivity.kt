@@ -30,6 +30,7 @@ import com.holfuy.configtool.device.RealHolfuyDevice
 import com.holfuy.configtool.firmware.FIRMWARE_EXTENSION
 import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.firmware.MAX_FIRMWARE_SIZE
+import com.holfuy.configtool.firmware.MIN_FIRMWARE_SIZE
 import com.holfuy.configtool.firmware.ManifestConfiguration
 import com.holfuy.configtool.firmware.RepositoryStorage
 import com.holfuy.configtool.firmware.UriFirmwareFile
@@ -487,6 +488,7 @@ class MainActivity : ComponentActivity()
                         }
                 
                         if (
+                            fileSize < MIN_FIRMWARE_SIZE ||
                             fileSize > MAX_FIRMWARE_SIZE ||
                             !fileName.endsWith(
                                 FIRMWARE_EXTENSION,
@@ -501,16 +503,20 @@ class MainActivity : ComponentActivity()
                         
                             val reason =
                                 when {
-                                    fileSize > MAX_FIRMWARE_SIZE &&
-                                        !fileName.endsWith(
-                                            FIRMWARE_EXTENSION,
-                                            ignoreCase = true
-                                        ) ->
-                                        "The selected file must be a .bin file no larger than 200 kB."
-                        
+                                    !fileName.endsWith(
+                                        FIRMWARE_EXTENSION,
+                                        ignoreCase = true
+                                    ) &&
+                                        (fileSize < MIN_FIRMWARE_SIZE ||
+                                            fileSize > MAX_FIRMWARE_SIZE) ->
+                                        "The selected file must be a .bin file at least 48 bytes and no larger than 200 kB."
+                            
+                                    fileSize < MIN_FIRMWARE_SIZE ->
+                                        "The selected file is too small. Firmware files must be at least 48 bytes."
+                            
                                     fileSize > MAX_FIRMWARE_SIZE ->
                                         "The selected file is too large. Firmware files must be no larger than 200 kB."
-                        
+                            
                                     else ->
                                         "The selected file is not a .bin firmware file."
                                 }

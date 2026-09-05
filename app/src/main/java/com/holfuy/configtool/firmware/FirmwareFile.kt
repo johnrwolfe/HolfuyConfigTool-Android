@@ -2,6 +2,7 @@ package com.holfuy.configtool.firmware
 
 import java.io.InputStream
 
+const val MIN_FIRMWARE_SIZE = 48L
 const val MAX_FIRMWARE_SIZE = 200 * 1024L
 const val FIRMWARE_EXTENSION = ".bin"
 

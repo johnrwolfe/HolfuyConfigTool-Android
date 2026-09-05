@@ -55,6 +55,15 @@ object ISPManager {
         if(cmd != ISPCommands.CMD_UPDATE_APROM && cmd != ISPCommands.CMD_UPDATE_DATAFLASH){
             return
         }
+        
+        if (sendByteArray.size < 48) {
+            Log.w(
+                TAG,
+                "UPDATE_BIN rejected: firmware is too small (${sendByteArray.size} bytes)"
+            )
+            callback.invoke(null, -1)
+            return
+        }
 
         var firstData = byteArrayOf()
         // First packet carries 48 bytes of firmware payload.
