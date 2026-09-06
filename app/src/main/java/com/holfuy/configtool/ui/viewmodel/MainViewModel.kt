@@ -113,8 +113,9 @@ class MainViewModel(
         } else {
 
             viewModelScope.launch {
-
-                firmwareRepository.refresh()
+                if (!DeviceRepository.state.updateInProgress) {
+                    firmwareRepository.refresh()
+                }
             }
 
             Log.i(
