@@ -6,6 +6,7 @@ import android.hardware.usb.UsbManager
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.device.RealHolfuyDevice
 import com.holfuy.configtool.firmware.FirmwareRepository
+import com.holfuy.configtool.firmware.FirmwareSelectionStore
 import com.holfuy.configtool.firmware.ManifestConfiguration
 import com.holfuy.configtool.firmware.RepositoryStorage
 import com.holfuy.configtool.ui.viewmodel.MainViewModelFactory
@@ -44,11 +45,17 @@ class HolfuyApplication : Application()
         )
     }
 
+    val firmwareSelectionStore by lazy {
+        FirmwareSelectionStore(this)
+    }
+
     val mainViewModelFactory: MainViewModelFactory by lazy {
         MainViewModelFactory(
+            this,
             holfuyDevice,
             usbDeviceProvider,
-            firmwareRepository
+            firmwareRepository,
+            firmwareSelectionStore
         )
     }
 }

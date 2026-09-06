@@ -381,7 +381,7 @@ class MainActivity : ComponentActivity()
                 val firmwarePicker =
                     rememberLauncherForActivityResult(
                         contract =
-                            ActivityResultContracts.GetContent()
+                            ActivityResultContracts.OpenDocument()
                     ) { uri: Uri? ->
     
                         if (uri == null) {
@@ -392,7 +392,12 @@ class MainActivity : ComponentActivity()
                              */
                             return@rememberLauncherForActivityResult
                         }
-    
+                        
+                        contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                        
                         val fileName =
                             getDisplayName(
                                 contentResolver,
@@ -477,8 +482,9 @@ class MainActivity : ComponentActivity()
                         )
     
                         viewModel.setFirmware(
-                            file,
-                            FirmwareSelectionSource.BROWSE
+                            file = file,
+                            source = FirmwareSelectionSource.BROWSE,
+                            uri = uri
                         )
     
                         showFirmwareSelection = false
@@ -534,7 +540,9 @@ class MainActivity : ComponentActivity()
     
                         onBrowse = {
                             viewModel.clearFirmwareSelectionError()
-                            firmwarePicker.launch("*/*")
+                            firmwarePicker.launch(
+                                arrayOf("*/*")
+                            )
                         },
     
                         onBack = {

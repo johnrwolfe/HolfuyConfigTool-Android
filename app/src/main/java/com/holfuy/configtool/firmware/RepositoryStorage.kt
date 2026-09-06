@@ -103,9 +103,28 @@ class RepositoryStorage(
         file: DocumentFile
     ): FirmwareFile
     {
+        val name =
+            file.name
+                ?: error(
+                    "Repository file has no name."
+                )
+    
         return RepositoryFirmwareFile(
-            this,
-            file
+            storage = this,
+            name = name,
+            size = file.length()
+        )
+    }
+    
+    fun firmwareFile(
+        name: String,
+        size: Long
+    ): FirmwareFile
+    {
+        return RepositoryFirmwareFile(
+            storage = this,
+            name = name,
+            size = size
         )
     }
     

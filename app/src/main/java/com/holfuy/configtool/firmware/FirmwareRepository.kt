@@ -520,6 +520,17 @@ class FirmwareRepository(
 
         return reconciled
     }
+    
+    fun firmwareFile(
+        name: String,
+        size: Long
+    ): FirmwareFile
+    {
+        return storage.firmwareFile(
+            name = name,
+            size = size
+        )
+    }
 
     suspend fun refresh()
     {

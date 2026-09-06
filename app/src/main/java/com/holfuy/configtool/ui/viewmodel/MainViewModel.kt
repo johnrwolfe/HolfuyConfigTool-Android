@@ -1,17 +1,21 @@
 package com.holfuy.configtool.ui.viewmodel
 
+import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
 import com.holfuy.configtool.firmware.FirmwareFile
 import com.holfuy.configtool.firmware.FirmwareRepository
+import com.holfuy.configtool.firmware.FirmwareSelectionStore
 import com.holfuy.configtool.firmware.RepositoryStatus
+import com.holfuy.configtool.firmware.StoredFirmwareSelection
+import com.holfuy.configtool.firmware.UriFirmwareFile
 import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.state.MainUiState
 import com.holfuy.configtool.ui.state.SelectedFirmware
@@ -20,10 +24,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainViewModel(
+    application: Application,
     private val holfuyDevice: HolfuyDevice,
     private val usbDeviceProvider: UsbDeviceProvider,
-    private val firmwareRepository: FirmwareRepository
-) : ViewModel()
+    private val firmwareRepository: FirmwareRepository,
+    private val firmwareSelectionStore: FirmwareSelectionStore
+) : AndroidViewModel(application)
 {
     companion object {
         private const val TAG = "HolfuyUSB-VM"
@@ -37,6 +43,51 @@ class MainViewModel(
     val repositoryStatus: RepositoryStatus
         get() = firmwareRepository.status
 
+    init
+    {
+        restoreFirmwareSelection()
+    }
+    
+    private fun restoreFirmwareSelection()
+    {
+        val storedSelection =
+            firmwareSelectionStore.getSelection()
+                ?: return
+    
+        val file =
+            when (storedSelection.source)
+            {
+                FirmwareSelectionSource.REPOSITORY ->
+                    firmwareRepository.firmwareFile(
+                        name = storedSelection.name,
+                        size = storedSelection.size
+                    )
+    
+                FirmwareSelectionSource.BROWSE ->
+                    storedSelection.uri?.let { uri ->
+                        UriFirmwareFile(
+                            context = getApplication<Application>(),
+                            uri = uri,
+                            name = storedSelection.name,
+                            size = storedSelection.size
+                        )
+                    }
+            }
+                ?: return
+    
+        uiState =
+            uiState.copy(
+                selectedFirmware =
+                    SelectedFirmware(
+                        file = file,
+                        source = storedSelection.source,
+                        modem = storedSelection.modem
+                    ),
+                selectedFirmwareAvailable =
+                    file.exists()
+            )
+    }
+    
     fun configureRepository(
         rootUri: Uri
     )
@@ -44,6 +95,8 @@ class MainViewModel(
         firmwareRepository.configure(
             rootUri
         )
+    
+        refreshSelectedFirmwareAvailability()
     }
 
     fun endRepositoryConfiguration()
@@ -105,9 +158,20 @@ class MainViewModel(
     fun setFirmware(
         file: FirmwareFile,
         source: FirmwareSelectionSource,
-        modem: String? = null
+        modem: String? = null,
+        uri: Uri? = null
     )
     {
+        firmwareSelectionStore.setSelection(
+            StoredFirmwareSelection(
+                source = source,
+                name = file.name,
+                size = file.size,
+                modem = modem,
+                uri = uri
+            )
+        )
+    
         uiState = uiState.copy(
             selectedFirmware =
                 SelectedFirmware(
