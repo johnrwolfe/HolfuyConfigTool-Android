@@ -535,19 +535,19 @@ class FirmwareRepository(
     suspend fun refresh()
     {
         if (!refreshMutex.tryLock()) {
-
+    
             Log.i(
                 TAG,
                 "Refresh already in progress; ignoring request."
             )
-
+    
             return
         }
-
+    
         try {
-
+    
             withContext(Dispatchers.IO) {
-
+    
                 /*
                  * Immediately reconcile the previous snapshot against the
                  * actual repository contents.
@@ -562,70 +562,77 @@ class FirmwareRepository(
                             status.firmware
                         )
                 )
-
-                val manifest =
-                    try {
-
-                        loadManifest()
-
-                    } catch (e: Exception) {
-
-                        Log.w(
-                            TAG,
-                            "Unable to download firmware manifest.",
-                            e
+    
+                try {
+    
+                    val manifest =
+                        try {
+    
+                            loadManifest()
+    
+                        } catch (e: Exception) {
+    
+                            Log.w(
+                                TAG,
+                                "Unable to download firmware manifest.",
+                                e
+                            )
+    
+                            /*
+                             * Reconcile once more because repository contents
+                             * may have changed while the manifest request was
+                             * in progress.
+                             *
+                             * Newly discovered files are treated as CUSTOM.
+                             */
+                            status = status.copy(
+                                lastCheckFailed =
+                                    Instant.now(),
+                                firmware =
+                                    reconcileSnapshotWithStorage(
+                                        status.firmware
+                                    )
+                            )
+    
+                            return@withContext
+                        }
+    
+                    /*
+                     * Build the complete manifest-derived snapshot privately.
+                     * Nothing becomes visible to Compose until synchronization
+                     * has completed.
+                     */
+                    val firmwareStatus =
+                        synchronizeRepository(
+                            manifest
                         )
-
-                        /*
-                         * Reconcile once more because repository contents
-                         * may have changed while the manifest request was
-                         * in progress.
-                         *
-                         * Newly discovered files are treated as CUSTOM.
-                         */
-                        status = status.copy(
-                            refreshing = false,
-                            lastCheckFailed =
-                                Instant.now(),
-                            firmware =
-                                reconcileSnapshotWithStorage(
-                                    status.firmware
-                                )
-                        )
-
-                        return@withContext
-                    }
-
-                /*
-                 * Build the complete manifest-derived snapshot privately.
-                 * Nothing becomes visible to Compose until synchronization
-                 * has completed.
-                 */
-                val firmwareStatus =
-                    synchronizeRepository(
-                        manifest
+    
+                    /*
+                     * Atomically replace the temporary snapshot with the
+                     * complete, authoritative repository state.
+                     */
+                    status = status.copy(
+                        lastSuccessfullyChecked =
+                            Instant.now(),
+                        lastCheckFailed = null,
+                        firmware = firmwareStatus
                     )
-
-                /*
-                 * Atomically replace the temporary snapshot with the
-                 * complete, authoritative repository state.
-                 */
-                status = status.copy(
-                    refreshing = false,
-                    lastSuccessfullyChecked =
-                        Instant.now(),
-                    lastCheckFailed = null,
-                    firmware = firmwareStatus
-                )
-
-                Log.i(
-                    TAG,
-                    "Refresh completed successfully."
-                )
+    
+                    Log.i(
+                        TAG,
+                        "Refresh completed successfully."
+                    )
+    
+                } finally {
+    
+                    status = status.copy(
+                        refreshing = false
+                    )
+                }
             }
-
+    
         } finally {
-
+    
             refreshMutex.unlock()
         }
     }
