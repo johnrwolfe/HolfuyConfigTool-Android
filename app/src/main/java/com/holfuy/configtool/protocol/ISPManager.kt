@@ -467,18 +467,22 @@ object ISPManager {
             return false
         }
     
-        val claimed =
-            usbConnection!!.claimInterface(
-                usbInterface,
-                forceClaim
-            )
-    
+        val claimed = usbConnection!!.claimInterface(
+            usbInterface,
+            forceClaim
+        )
+
         Log.i(
             TAG,
             "USB session open, claimInterface=$claimed"
         )
-    
-        return claimed
+
+        if (!claimed) {
+            closeUsbSession()
+            return false
+        }
+
+        return true
     }
     
     fun closeUsbSession() {  
