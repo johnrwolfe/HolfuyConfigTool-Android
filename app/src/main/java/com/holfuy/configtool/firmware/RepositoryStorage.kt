@@ -3,6 +3,7 @@ package com.holfuy.configtool.firmware
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
+import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import java.io.InputStream
 import java.io.OutputStream
@@ -206,24 +207,93 @@ class RepositoryStorage(
                 ?: error(
                     "'$tempFilename' does not exist."
                 )
-    
-        find(filename)
-            ?.delete()
-    
-        val renamedUri =
-            DocumentsContract.renameDocument(
-                context.contentResolver,
-                temp.uri,
-                filename
-            )
-                ?: error(
-                    "Unable to rename '$tempFilename'."
+
+        val existing =
+            find(filename)
+
+        val backupFilename =
+            "$filename.bak"
+
+        var backupCreated = false
+
+        try {
+            existing?.let {
+                val renamedUri =
+                    DocumentsContract.renameDocument(
+                        context.contentResolver,
+                        it.uri,
+                        backupFilename
+                    )
+                        ?: error(
+                            "Unable to back up '$filename'."
+                        )
+
+                check(
+                    renamedUri == it.uri ||
+                        find(backupFilename) != null
+                ) {
+                    "Unable to back up '$filename'."
+                }
+
+                backupCreated = true
+            }
+
+            val renamedUri =
+                DocumentsContract.renameDocument(
+                    context.contentResolver,
+                    temp.uri,
+                    filename
                 )
-    
-        check(
-            renamedUri == temp.uri || find(filename) != null
-        ) {
-            "Unable to promote '$filename'."
+                    ?: error(
+                        "Unable to rename '$tempFilename'."
+                    )
+
+            check(
+                renamedUri == temp.uri ||
+                    find(filename) != null
+            ) {
+                "Unable to promote '$filename'."
+            }
+
+            if (backupCreated) {
+                deleteIfPresent(backupFilename)
+            }
+
+        } catch (e: Exception) {
+
+            if (backupCreated) {
+                try {
+                    find(filename)?.delete()
+
+                    val backup =
+                        find(backupFilename)
+
+                    if (backup != null) {
+                        val restoredUri =
+                            DocumentsContract.renameDocument(
+                                context.contentResolver,
+                                backup.uri,
+                                filename
+                            )
+
+                        check(
+                            restoredUri == backup.uri ||
+                                find(filename) != null
+                        ) {
+                            "Unable to restore '$filename'."
+                        }
+                    }
+                } catch (restoreException: Exception) {
+                    Log.w(
+                        "HolfuyUSB-FW",
+                        "Unable to restore '$filename' " +
+                            "after failed replacement.",
+                        restoreException
+                    )
+                }
+            }
+
+            throw e
         }
     }
     
