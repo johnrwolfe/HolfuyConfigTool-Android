@@ -273,7 +273,6 @@ class MainActivity : ComponentActivity()
     
                 activityViewModel.refreshUsbState()
     
-                activityViewModel.clearFirmwareUpdateInterrupted()
             }
         }
     

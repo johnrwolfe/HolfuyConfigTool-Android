@@ -297,49 +297,41 @@ fun MainScreen(
                 )
 
                 when {
-
                     deviceState.updateInProgress -> {
-
+                
                         LinearProgressIndicator(
                             progress = {
                                 deviceState.updateProgress / 100f
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
-
+                
                         Spacer(
                             modifier = Modifier.height(8.dp)
                         )
-
+                
                         Text(
                             "${deviceState.updateProgress}%"
                         )
                     }
-
+                
                     uiState.updateCompleted -> {
-
+                
                         Text(
                             "Firmware update completed successfully."
                         )
                     }
-
-                    uiState.firmwareUpdateInterrupted -> {
-
-                        Text(
-                            "Firmware update interrupted."
-                        )
-                    }
-
+                
                     uiState.firmwareUpdateError != null -> {
-
+                
                         Text(
                             uiState.firmwareUpdateError
                                 ?: ""
                         )
                     }
-
+                
                     else -> {
-
+                
                         Text(
                             "No update in progress."
                         )

@@ -33,6 +33,12 @@ class MainViewModel(
 {
     companion object {
         private const val TAG = "HolfuyUSB-VM"
+    
+        private const val FIRMWARE_UPDATE_FAILURE_MESSAGE =
+            "Device disconnected. Firmware update interrupted. " +
+            "Please restart the firmware upgrade process. " +
+            "If it won't work after several tries please contact " +
+            "Holfuy Support."
     }
 
     var uiState by mutableStateOf(MainUiState())
@@ -230,7 +236,11 @@ class MainViewModel(
         holfuyDevice.onUsbDetached()
     
         if (updateInProgress) {
-            firmwareUpdateInterrupted()
+            uiState = uiState.copy(
+                updateCompleted = false,
+                firmwareUpdateError =
+                    FIRMWARE_UPDATE_FAILURE_MESSAGE
+            )
         }
     
         DeviceRepository.clearConnectionState()
@@ -239,7 +249,6 @@ class MainViewModel(
             clearTransientStatus()
         }
     }
-
     fun connect()
     {
         Log.d(TAG, "connect() called")
@@ -286,107 +295,108 @@ class MainViewModel(
         val selectedFirmware =
             uiState.selectedFirmware
                 ?: return
-
+    
         val firmware =
             selectedFirmware.file
-
+    
         viewModelScope.launch(Dispatchers.IO) {
-
+    
             try {
-
+    
                 Log.d(
                     TAG,
                     "updateFirmware() called"
                 )
-
+    
                 DeviceRepository.setUpdateInProgress(
                     true
                 )
-
+    
                 DeviceRepository.setUpdateProgress(
                     0
                 )
-
+    
                 uiState = uiState.copy(
                     updateCompleted = false,
-                    firmwareUpdateInterrupted = false,
                     firmwareUpdateError = null
                 )
-
+    
                 val bytes =
                     try {
-
+    
                         firmware
                             .openInputStream()
                             .use { input ->
                                 input.readBytes()
                             }
-
+    
                     } catch (e: Exception) {
-
+    
                         Log.e(
                             TAG,
                             "Unable to load firmware: " +
                                 firmware.name,
                             e
                         )
-
+    
                         uiState = uiState.copy(
                             firmwareUpdateError =
                                 "Unable to open the selected " +
-                                    "firmware file."
+                                "firmware file."
                         )
-
+    
                         return@launch
                     }
-
+    
                 Log.i(
                     TAG,
                     "Loaded firmware: ${firmware.name} " +
                         "(${bytes.size} bytes)"
                 )
-
+    
                 val success =
                     holfuyDevice.updateFirmware(
                         bytes
                     ) { progress ->
-
+    
                         DeviceRepository.setUpdateProgress(
                             progress
                         )
                     }
-
+    
                 uiState = uiState.copy(
-                    updateCompleted = success
+                    updateCompleted = success,
+                    firmwareUpdateError =
+                        if (success) null
+                        else FIRMWARE_UPDATE_FAILURE_MESSAGE
                 )
-
+                
                 Log.i(
                     TAG,
                     "updateFirmware success=$success"
                 )
+
             }
             catch (e: Exception) {
-
+    
                 Log.e(
                     TAG,
                     "Firmware update failed",
                     e
                 )
-
+    
                 uiState = uiState.copy(
+                    updateCompleted = false,
                     firmwareUpdateError =
-                        "Firmware update failed. " +
-                        "The station's application firmware " +
-                        "may be corrupted. " +
-                        "See the User Guide for recovery instructions."
+                        FIRMWARE_UPDATE_FAILURE_MESSAGE
                 )
             }
             finally {
-
+    
                 DeviceRepository.setUpdateInProgress(
                     false
                 )
-
+    
                 Log.d(
                     TAG,
                     "DeviceRepository state=" +
@@ -396,26 +406,10 @@ class MainViewModel(
         }
     }
 
-    fun firmwareUpdateInterrupted()
-    {
-        uiState = uiState.copy(
-            firmwareUpdateInterrupted = true,
-            updateCompleted = false
-        )
-    }
-
-    fun clearFirmwareUpdateInterrupted()
-    {
-        uiState = uiState.copy(
-            firmwareUpdateInterrupted = false
-        )
-    }
-
     fun clearTransientStatus()
     {
         uiState = uiState.copy(
-            updateCompleted = false,
-            firmwareUpdateInterrupted = false
+            updateCompleted = false
         )
     }
 }
