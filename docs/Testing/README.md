@@ -24,6 +24,7 @@ Testing encompasses the complete system:
 - Android operating system
 - Android device hardware
 - USB subsystem
+- Internet connection
 - Holfuy Upgrader
 - Holfuy weather station
 - User interaction
@@ -40,8 +41,9 @@ Testing begins with the procedures documented in the User Guide.
 Each documented procedure defines a **nominal workflow** describing the expected
 sequence of user actions required to complete a task.
 
-For version 1.0.0, there is a single nominal workflow:
+For version 1.0.0, there are two nominal workflows:
 
+- Configure Repository
 - Update Firmware
 
 Additional application features will introduce additional nominal workflows.
@@ -55,6 +57,7 @@ Typical variations include:
 - Delayed user actions
 - Android lifecycle events
 - USB connection changes
+- Internet connection changes
 - Weather station state changes
 - Firmware-selection variations
 
@@ -71,55 +74,14 @@ and allows the user to resume or restart the workflow without restarting the app
 
 ---
 
-# Conceptual State Models
-
-The project includes conceptual state models describing the behavior of the
-major components of the system.
-
-Current models include:
-
-- Android Device
-- Holfuy Upgrader
-- Holfuy Weather Station
-
-These models are engineering tools used to identify meaningful variations of
-the nominal workflows.
-
-They are intentionally conceptual rather than executable. Their purpose is to
-help derive comprehensive test cases, not to serve as executable
-specifications.
-
-Android lifecycle behavior that lies outside the scope of the conceptual models
-is identified separately and incorporated as additional workflow variations.
-
----
-
 # Test Documentation
 
 The testing documentation consists of the following documents.
 
 | Document | Purpose |
 |----------|---------|
-| **README.md** | Testing philosophy, methodology, and organization |
 | **TestCases.md** | Executable manual test procedures |
-| **RegressionMatrix.md** | Traceability between workflows, variations, conceptual models, and regression history |
-
-The documents are intended to be read in the following order.
-
-```
-README.md
-      │
-      ▼
-User Guide
-      │
-      ▼
-TestCases.md
-      │
-      ▼
-RegressionMatrix.md
-```
-
----
+| **CoverageAnalysis.md** | Functional coverage of test procedures |
 
 # Test Derivation
 
@@ -128,9 +90,9 @@ Manual test cases are developed using the following process.
 1. Document a nominal user workflow in the User Guide.
 2. Identify significant interruption points within that workflow.
 3. Identify meaningful variations using:
-   - conceptual state models,
    - Android lifecycle behavior,
    - USB events,
+   - Network activity,
    - weather station behavior, and
    - user interaction.
 4. Create one variation test for each meaningful deviation.
@@ -180,10 +142,10 @@ unless explicitly reinstated.
 When new functionality is added:
 
 1. Update the User Guide.
-2. Update the conceptual state models if necessary.
+2. Identify new workflows.
 3. Identify new workflow variations.
-4. Add or modify manual test cases.
-5. Update the Regression Matrix.
+4. Update the coverage analysis to reflect new workflows and variations.
+5. Add or modify manual test cases to fill gaps in the updated coverage analysis.
 6. Add permanent regression tests for any corrected defects.
 
 When correcting a software defect, at least one permanent regression test should
