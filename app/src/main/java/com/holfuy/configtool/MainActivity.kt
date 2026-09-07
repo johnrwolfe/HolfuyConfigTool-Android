@@ -469,7 +469,7 @@ class MainActivity : ComponentActivity()
     
                         val file =
                             UriFirmwareFile(
-                                context = this@MainActivity,
+                                context = applicationContext,
                                 uri = uri,
                                 name = fileName,
                                 size = fileSize
