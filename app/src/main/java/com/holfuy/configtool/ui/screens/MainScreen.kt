@@ -256,13 +256,17 @@ fun MainScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text("Connection Status")
-
+        
                 Text(
                     if (deviceState.connected)
                         "Connected"
                     else
                         "Disconnected"
                 )
+        
+                uiState.connectionError?.let { error ->
+                    Text(error)
+                }
             }
         }
 

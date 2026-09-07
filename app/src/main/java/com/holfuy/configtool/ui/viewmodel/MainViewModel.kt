@@ -249,6 +249,7 @@ class MainViewModel(
             clearTransientStatus()
         }
     }
+    
     fun connect()
     {
         Log.d(TAG, "connect() called")
@@ -257,7 +258,7 @@ class MainViewModel(
     
             uiState = uiState.copy(
                 connecting = true,
-                errorMessage = null
+                connectionError = null
             )
     
             try {
@@ -265,7 +266,7 @@ class MainViewModel(
                 if (!holfuyDevice.connect()) {
     
                     uiState = uiState.copy(
-                        errorMessage = "Connection failed"
+                        connectionError = "Connection failed"
                     )
                 }
             }
@@ -278,7 +279,7 @@ class MainViewModel(
                 )
     
                 uiState = uiState.copy(
-                    errorMessage = e.message
+                    connectionError = "Connection failed"
                 )
             }
             finally {

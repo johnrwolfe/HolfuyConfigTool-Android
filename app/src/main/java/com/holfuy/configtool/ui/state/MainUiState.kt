@@ -19,7 +19,7 @@ data class MainUiState(
     val selectedFirmware: SelectedFirmware? = null,
     val selectedFirmwareAvailable: Boolean = false,
     val firmwareSelectionError: String? = null,
-    val errorMessage: String? = null,
+    val connectionError: String? = null,
     val updateCompleted: Boolean = false,
     val firmwareUpdateError: String? = null
 )
