@@ -880,12 +880,6 @@ https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-D
 Manifest B identifies `replacement.bin` with the checksum of the replacement file and
 specifies the URL from which the replacement file can be downloaded.
 
-The replacement file SHA-256 is:
-
-```text
-f3ad11014246cc9c67d2b3a5fda4bdb1ea8bc5ce6d0268de3487accdb32e6a77
-```
-
 **Test repository on device:**
 
 ```text
