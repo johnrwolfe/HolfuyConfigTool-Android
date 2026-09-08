@@ -26,8 +26,8 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.holfuy.configtool.diagnostics.DiagnosticReport
 import com.holfuy.configtool.device.DeviceRepository
+import com.holfuy.configtool.diagnostics.DiagnosticReport
 import com.holfuy.configtool.firmware.FIRMWARE_EXTENSION
 import com.holfuy.configtool.firmware.MAX_FIRMWARE_SIZE
 import com.holfuy.configtool.firmware.MIN_FIRMWARE_SIZE

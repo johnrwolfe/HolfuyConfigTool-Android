@@ -2,11 +2,10 @@ package com.holfuy.configtool.device
 
 import android.hardware.usb.UsbManager
 import android.util.Log
-import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.diagnostics.DiagnosticLogger
-import com.holfuy.configtool.usb.UsbDeviceProvider
-import com.holfuy.configtool.protocol.ISPManager
 import com.holfuy.configtool.protocol.ISPCommands
+import com.holfuy.configtool.protocol.ISPManager
+import com.holfuy.configtool.usb.UsbDeviceProvider
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
