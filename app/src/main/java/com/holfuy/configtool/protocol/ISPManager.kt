@@ -49,6 +49,9 @@ object ISPManager {
     private var usbInterface: UsbInterface? = null
     private var readEndpoint: UsbEndpoint? = null
     private var writeEndpoint: UsbEndpoint? = null
+    
+    @Volatile
+    private var usbSessionGeneration = 0L
 
     fun sendCMD_UPDATE_BIN(cmd: ISPCommands ,sendByteArray:ByteArray,startAddress:UInt, callback: ((ByteArray?, Int) -> Unit)) {
 
@@ -103,7 +106,7 @@ object ISPManager {
         if (readBuffer == null) {
             Log.i(
                 TAG,
-                "UPDATE_BIN timeout waiting for packet ${packetNumber + 1u}"
+                "UPDATE_BIN failed waiting for packet ${packetNumber + 1u}"
             )
             callback.invoke(null, -1)
             return
@@ -133,7 +136,7 @@ object ISPManager {
             if (readBuffer == null) {
                 Log.i(
                     TAG,
-                    "UPDATE_BIN timeout waiting for packet ${packetNumber + 1u}"
+                    "UPDATE_BIN failed waiting for packet ${packetNumber + 1u}"
                 )
                 callback.invoke(null, -1)
                 return
@@ -485,25 +488,33 @@ object ISPManager {
         return true
     }
     
-    fun closeUsbSession() {  
-        Log.i(TAG, "closeUsbSession requested")  
-        try {    
-            usbConnection?.releaseInterface(usbInterface)    
+    fun closeUsbSession() {
+        Log.i(TAG, "closeUsbSession requested")
+    
+        // Invalidate any ISP operation currently waiting for a response.
+        // Increment this before closing the Android USB connection so that
+        // waitForExpectedPacket() can stop promptly even while the close
+        // operation is still in progress.
+        usbSessionGeneration++
+    
+        try {
+            usbConnection?.releaseInterface(usbInterface)
         } catch (_: Exception) {
         }
     
-        try {    
-            usbConnection?.close()    
+        try {
+            usbConnection?.close()
         } catch (_: Exception) {
         }
     
         usbConnection = null
         usbInterface = null
         readEndpoint = null
-        writeEndpoint = null    
+        writeEndpoint = null
+    
         Log.i(TAG, "closeUsbSession, USB session closed")
     }
-
+    
     fun sendCMD_GET_DEVICEID( callback: ((ByteArray?, Boolean) -> Unit)) {
 
         val cmd = ISPCommands.CMD_GET_DEVICEID
@@ -612,58 +623,120 @@ object ISPManager {
         timeoutMs: Long = 2000
     ): ByteArray? {
     
+        val waitGeneration = usbSessionGeneration
+    
+        if (
+            usbConnection == null ||
+            readEndpoint == null
+        ) {
+            Log.i(
+                TAG,
+                "waitForExpectedPacket aborted: USB session not open"
+            )
+            return null
+        }
+    
         val start = SystemClock.elapsedRealtime()
         var zeroPacketCount = 0
     
         while ((SystemClock.elapsedRealtime() - start) < timeoutMs) {
     
+            if (usbSessionGeneration != waitGeneration) {
+                Log.i(
+                    TAG,
+                    "waitForExpectedPacket aborted before read() because USB session was invalidated " +
+                        "while waiting for packNo=$expectedPackNo"
+                )
+                return null
+            }
+    
             val readBuffer = this.read()
     
+            // The detach may have occurred while bulkTransfer() was blocked.
+            if (usbSessionGeneration != waitGeneration) {
+                Log.i(
+                    TAG,
+                    "waitForExpectedPacket aborted after read() because USB session was invalidated " +
+                        "while waiting for packNo=$expectedPackNo"
+                )
+                return null
+            }
+    
             if (readBuffer == null) {
-                Log.d(TAG, "waitForExpectedPacket readBuffer == null")
+    
+                // A null read while the session is still open is an ordinary
+                // USB read timeout and should continue waiting. A closed session
+                // cannot produce the expected reply, so stop immediately.
+                if (
+                    usbConnection == null ||
+                    readEndpoint == null
+                ) {
+                    Log.i(
+                        TAG,
+                        "waitForExpectedPacket aborted: USB session closed " +
+                            "while waiting for packNo=$expectedPackNo"
+                    )
+                    return null
+                }
+    
+                Log.d(
+                    TAG,
+                    "waitForExpectedPacket readBuffer == null"
+                )
                 continue
             }
     
-            val resultPackNo = ISPCommandTool.toPackNo(readBuffer)
-            val resultChecksum = ISPCommandTool.toChecksumByReadBuffer(readBuffer)
+            val resultPackNo =
+                ISPCommandTool.toPackNo(readBuffer)
+    
+            val resultChecksum =
+                ISPCommandTool.toChecksumByReadBuffer(readBuffer)
     
             if (resultPackNo != expectedPackNo) {
+    
                 if (resultPackNo == 0u) {
                     zeroPacketCount++
                     continue
-                }                
-                val readBufferString = HEXTool.toHexString(readBuffer)
-                val display = HEXTool.toDisPlayString(readBufferString)
-
+                }
+    
+                val readBufferString =
+                    HEXTool.toHexString(readBuffer)
+    
+                val display =
+                    HEXTool.toDisPlayString(readBufferString)
+    
                 Log.d(
                     TAG,
                     "waitForExpectedPacket " +
-                    "resultPackNo=$resultPackNo " +
-                    "expectedPackNo=$expectedPackNo " +
-                    "checksum=$resultChecksum"
-                )  
-
+                        "resultPackNo=$resultPackNo " +
+                        "expectedPackNo=$expectedPackNo " +
+                        "checksum=$resultChecksum"
+                )
+    
                 Log.d(
                     TAGP,
                     "Ignoring unexpected packet: $display"
                 )
+    
                 continue
             }
-            
+    
             if (zeroPacketCount > 0) {
                 Log.d(
-                    TAG, 
-                    "Ignored $zeroPacketCount zero packets while waiting for packNo=$expectedPackNo"
+                    TAG,
+                    "Ignored $zeroPacketCount zero packets " +
+                        "while waiting for packNo=$expectedPackNo"
                 )
             }
-         
+    
             return readBuffer
         }
     
         Log.i(
             TAG,
             "waitForExpectedPacket timeout waiting for packNo=$expectedPackNo"
-        )    
+        )
+    
         return null
     }
     

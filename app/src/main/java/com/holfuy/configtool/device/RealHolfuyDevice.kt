@@ -160,47 +160,71 @@ class RealHolfuyDevice(
         firmwareBytes: ByteArray,
         onProgress: (Int) -> Unit
     ): Boolean = operationMutex.withLock {
+    
+        val operationGeneration =
+            synchronized(sessionLock) {
+                sessionGeneration
+            }
+    
         Log.i(
             TAG,
             "Starting firmware update (${firmwareBytes.size} bytes)"
         )
-
+    
         diagnosticLogger.recordFirmwareUpdateStarted(
             firmwareBytes.size
         )
-
+    
         var success = true
         var lastDiagnosticProgress = 0
-
+    
         ISPManager.sendCMD_UPDATE_BIN(
             ISPCommands.CMD_UPDATE_APROM,
             firmwareBytes,
             0u
         ) { _, progress ->
-
-            onProgress(progress)
-
+    
+            if (progress >= 0) {
+                onProgress(progress)
+            }
+    
             if (
                 progress >= 25 &&
                 progress >= lastDiagnosticProgress + 25
             ) {
-                lastDiagnosticProgress = (progress / 25) * 25
-
+                lastDiagnosticProgress =
+                    (progress / 25) * 25
+    
                 diagnosticLogger.recordFirmwareUpdateProgress(
                     lastDiagnosticProgress
                 )
             }
-
+    
             if (progress < 0) {
                 success = false
             }
         }
-
+    
+        val sessionInvalidated =
+            synchronized(sessionLock) {
+                sessionGeneration != operationGeneration
+            }
+    
+        if (sessionInvalidated) {
+    
+            Log.i(
+                TAG,
+                "Firmware update stopped because USB session was invalidated"
+            )
+    
+            return@withLock false
+        }
+    
         Log.i(
             TAG,
             "Firmware update finished success=$success"
         )
-
+    
         if (success) {
             diagnosticLogger.recordFirmwareUpdateCompleted()
         } else {
@@ -208,7 +232,7 @@ class RealHolfuyDevice(
                 "ISP firmware update reported failure"
             )
         }
-
+    
         return@withLock success
     }
 
