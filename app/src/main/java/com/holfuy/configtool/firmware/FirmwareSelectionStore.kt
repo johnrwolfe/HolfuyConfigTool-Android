@@ -2,6 +2,7 @@ package com.holfuy.configtool.firmware
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.content.edit
 import com.holfuy.configtool.ui.state.FirmwareSelectionSource 
 
 data class StoredFirmwareSelection(
@@ -102,42 +103,44 @@ class FirmwareSelectionStore(
         selection: StoredFirmwareSelection
     )
     {
-        preferences.edit()
-            .clear()
-            .putString(
+        preferences.edit {
+            clear()
+    
+            putString(
                 KEY_SOURCE,
                 selection.source.name
             )
-            .putString(
+    
+            putString(
                 KEY_NAME,
                 selection.name
             )
-            .putLong(
+    
+            putLong(
                 KEY_SIZE,
                 selection.size
             )
-            .apply {
-                selection.modem?.let {
-                    putString(
-                        KEY_MODEM,
-                        it
-                    )
-                }
-
-                selection.uri?.let {
-                    putString(
-                        KEY_URI,
-                        it.toString()
-                    )
-                }
+    
+            selection.modem?.let {
+                putString(
+                    KEY_MODEM,
+                    it
+                )
             }
-            .apply()
+    
+            selection.uri?.let {
+                putString(
+                    KEY_URI,
+                    it.toString()
+                )
+            }
+        }
     }
-
+    
     fun clearSelection()
     {
-        preferences.edit()
-            .clear()
-            .apply()
+        preferences.edit {
+            clear()
+        }
     }
 }

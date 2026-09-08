@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.util.Log
+import androidx.core.content.edit
 import androidx.documentfile.provider.DocumentFile
 import java.io.InputStream
 import java.io.OutputStream
@@ -45,12 +46,12 @@ class RepositoryStorage(
         rootUri: Uri
     )
     {
-        prefs.edit()
-            .putString(
+        prefs.edit {
+            putString(
                 KEY_ROOT_URI,
                 rootUri.toString()
             )
-            .apply()
+        }
     }
 
     fun getRoot(): DocumentFile?

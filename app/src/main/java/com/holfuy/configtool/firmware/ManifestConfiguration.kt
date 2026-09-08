@@ -1,6 +1,7 @@
 package com.holfuy.configtool.firmware
 
 import android.content.Context
+import androidx.core.content.edit
 
 class ManifestConfiguration(
     context: Context
@@ -39,20 +40,20 @@ class ManifestConfiguration(
         url: String
     )
     {
-        preferences.edit()
-            .putString(
+        preferences.edit {
+            putString(
                 MANIFEST_URL_OVERRIDE,
                 url
             )
-            .apply()
+        }
     }
 
     fun clearOverride()
     {
-        preferences.edit()
-            .remove(
+        preferences.edit {
+            remove(
                 MANIFEST_URL_OVERRIDE
             )
-            .apply()
+        }
     }
 }
