@@ -376,6 +376,7 @@ Each test case below specifies expected results in addition to these:
 * Connection is not established.
 * Firmware Update remains unavailable.
 * User may retry by tapping **Connect**.
+* Diagnostic history records the USB permission denial.
 
 ---
 
@@ -443,6 +444,7 @@ Each test case below specifies expected results in addition to these:
 * Terminates the firmware update cleanly.
 * Returns to the disconnected state.
 * Remains responsive.
+* Diagnostic history records the USB device detachment and firmware-update interruption.
 
 **Weather Station**
 
@@ -1110,3 +1112,110 @@ repository or selected firmware, and that the application clearly indicates the 
 ### Expected Results
 
 - Application satisfies the VS-REPO-INVALID-MANIFEST expected behavioral property.
+
+---
+
+## TC-025 — Send Diagnostic Report
+
+**Reference Workflow:** WF-001
+
+**Classification:** Regression, Compatibility
+
+**Variation:** Send Diagnostics from Help
+
+### Purpose
+
+Verify that the application can generate and share a diagnostic report 
+containing useful application and device information, current application
+state, and recent diagnostic history, without exposing sensitive information.
+
+### Preconditions
+
+1. The application has previously completed at least one normal firmware-update workflow, so the diagnostic history contains significant events.
+2. The Android device has a configured share target capable of receiving a text attachment.
+
+### Procedure
+
+1. Open the application.
+2. Tap **Help**.
+3. Tap **Send Diagnostics**.
+4. Verify that the Android Sharesheet is displayed.
+5. Select an appropriate share target.
+6. Verify that the shared content includes a text attachment.
+7. Open or otherwise inspect the diagnostic report.
+8. Verify that the report identifies itself as **Holfuy Upgrader Diagnostics**.
+9. Verify that the report includes:
+    - the application version and build information.
+    - the Android version/API level and Android device manufacturer/model.
+    - the current application/device state.
+    - information about the most recent firmware-update operation.
+    - the recent diagnostic history in chronological order.
+10. Verify that significant events from the preceding firmware-update workflow are present in the history.
+11. Verify that the report does not contain:
+    - firmware file contents.
+    - credentials, tokens, or other sensitive information.
+12. Verify that the report does not expose the complete firmware file URI or filesystem path.
+13. Return to Holfuy Upgrader.
+14. Tap **Help**.
+15. Tap **Send Diagnostics** again.
+16. Verify that the diagnostic history from the preceding report is still present.
+
+### Expected Results
+
+* The Android Sharesheet is displayed.
+* A diagnostic report is generated as a text attachment.
+* The report contains the expected application, Android device, current-state, firmware-update, and diagnostic-history information.
+* The diagnostic history is presented in chronological order.
+* The report does not expose sensitive information or firmware contents.
+* Generating and sharing a report does not clear the diagnostic history.
+* Application remains responsive.
+* No crash or (ANR) occurs.
+
+---
+
+## TC-026 — Diagnostic History Persists Across Application Restart
+
+**Reference Workflow:** WF-001
+
+**Classification:** Regression, Compatibility
+
+**Variation:** Application restart after diagnostic events have been recorded
+
+### Purpose
+
+Verify that diagnostic history persists across an application restart and remains available for inclusion in a subsequent diagnostic report.
+
+### Preconditions
+
+1. The Android device has a configured share target capable of receiving a text attachment.
+
+### Procedure
+
+1. Open the application.
+2. Connect the station to the Android device and turn on the station.
+3. Tap **Connect** and grant USB permission if requested.
+4. Verify that the station connects successfully.
+5. Select a valid firmware file.
+6. Verify that **Update Firmware** is enabled.
+7. Start the firmware update.
+8. Verify that the firmware update completes successfully.
+9. Force stop the application.
+10. Relaunch Holfuy Upgrader.
+11. Tap **Help**.
+12. Tap **Send Diagnostics**.
+13. Verify that the Android Sharesheet is displayed.
+14. Select an appropriate share target.
+15. Open or otherwise inspect the diagnostic report.
+16. Verify that the report contains diagnostic events recorded before the application was stopped.
+17. Verify that the events appear in chronological order.
+18. Verify that the report contains events from the completed firmware update.
+
+### Expected Results
+
+* Diagnostic history recorded before the application restart remains available after the restart.
+* The diagnostic report contains the retained history, including significant events from the completed firmware update.
+* Diagnostic history is not lost or reset when the application is stopped and relaunched.
+* Application remains responsive.
+* No crash or (ANR) occurs.
+
+---

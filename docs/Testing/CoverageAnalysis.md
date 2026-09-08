@@ -320,3 +320,26 @@ The matrix identifies the Application Session States from which each behavioral 
 | Repository Configuration   | TC-018 |           —           |         —         |
 | Firmware Selection         | TC-001 |         TC-001        |       TC-001      |
 | Repository Synchronization | TC-001 |         TC-001        |       TC-001      |
+
+---
+
+# Diagnostics
+
+The application maintains a persistent, bounded diagnostic history containing
+significant application, repository, USB, connection, and firmware-update events.
+
+Diagnostic history is intended to support field diagnosis without requiring
+access to Android logcat or other developer tools.
+
+| Behavior | Coverage |
+| -------- | -------- |
+| Significant events recorded during normal operation | TC-025 |
+| Connection failure recorded | TC-002 |
+| Unexpected station loss recorded | TC-006 |
+| Repository synchronization failure recorded | TC-020 |
+| Diagnostic history survives application restart | TC-026 |
+| Diagnostic report includes application/device information | TC-025 |
+| Diagnostic report includes current application state | TC-025 |
+| Diagnostic report includes recent diagnostic history | TC-025 |
+| Diagnostic report can be shared using Android Sharesheet | TC-025 |
+| Diagnostic history is not cleared by report generation | TC-025 |
