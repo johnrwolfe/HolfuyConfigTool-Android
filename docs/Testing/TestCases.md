@@ -727,7 +727,7 @@ From the project repository root:
 adb shell am start \
   -n com.holfuy.configtool/.DebugManifestActivity \
   -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
-  --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Manifests/Dispositions/all.json"
+  --es url "https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/Manifests/Dispositions/all.json"
 ```
 
 **Test repository on device:**
@@ -867,7 +867,7 @@ from Outdated to Current.
 **Manifest A URL:**
 
 ```text
-https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-outdated.json
+https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-outdated.json
 ```
 
 Manifest A identifies `replacement.bin` with a checksum that does not match the copy initially
@@ -876,7 +876,7 @@ placed in the repository and specifies an unavailable URL for the replacement fi
 **Manifest B URL:**
 
 ```text
-https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-current.json
+https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-current.json
 ```
 
 Manifest B identifies `replacement.bin` with the checksum of the replacement file and
@@ -922,7 +922,7 @@ From the project repository root:
 adb shell am start \
   -n com.holfuy.configtool/.DebugManifestActivity \
   -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
-  --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-outdated.json"
+  --es url "https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-outdated.json"
 ```
 
 ### Preconditions
@@ -948,7 +948,7 @@ adb shell am start \
    adb shell am start \
      -n com.holfuy.configtool/.DebugManifestActivity \
      -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
-     --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-current.json"
+     --es url "https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/Dispositions/Replacement/manifest-current.json"
    ```
 9. Cause the application to resume, initiating a repository refresh.
 10. Wait for the refresh to complete.
@@ -1063,11 +1063,11 @@ repository or selected firmware, and that the application clearly indicates the 
 
 `invalid_json.json`:
 
-    https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/invalid_json.json
+    https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/InvalidManifest/invalid_json.json
 
 `missing_sha256.json`:
 
-    https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/missing_sha256.json
+    https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/InvalidManifest/missing_sha256.json
 
 ### Preconditions
 
@@ -1085,7 +1085,7 @@ repository or selected firmware, and that the application clearly indicates the 
        adb shell am start \
          -n com.holfuy.configtool/.DebugManifestActivity \
          -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
-         --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/invalid_json.json"
+         --es url "https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/InvalidManifest/invalid_json.json"
 
 4. Cause the application to resume, initiating a repository refresh.
 5. Wait for the refresh to complete.
@@ -1099,7 +1099,7 @@ repository or selected firmware, and that the application clearly indicates the 
        adb shell am start \
          -n com.holfuy.configtool/.DebugManifestActivity \
          -a com.holfuy.configtool.debug.SET_MANIFEST_URL \
-         --es url "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/InvalidManifest/missing_sha256.json"
+         --es url "https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/InvalidManifest/missing_sha256.json"
 
 12. Cause the application to resume, initiating a repository refresh.
 13. Wait for the refresh to complete.

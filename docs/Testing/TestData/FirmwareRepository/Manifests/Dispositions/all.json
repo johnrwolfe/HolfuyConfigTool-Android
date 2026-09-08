@@ -1,22 +1,22 @@
 {
   "firmwares": [
     {
-      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Dispositions/Current/Repository/current.bin",
+      "path": "https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/Dispositions/Current/Repository/current.bin",
       "modem": "TEST",
       "sha256": "fdeab9acf3710362bd2658cdc9a29e8f9c757fcf9811603a8c447cd1d9151108"
     },
     {
-      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Unavailable/outdated.bin",
+      "path": "https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/Unavailable/outdated.bin",
       "modem": "TEST",
       "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
-      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Unavailable/missing.bin",
+      "path": "https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/Unavailable/missing.bin",
       "modem": "TEST",
       "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
     },
     {
-      "path": "https://raw.githubusercontent.com/johnrwolfe/HolfuyConfigTool-Android/issue/13-Download_Firmware_Files/docs/Testing/TestData/FirmwareRepository/Unavailable/vanish.bin",
+      "path": "https://raw.githubusercontent.com/MaileTechnical/HolfuyConfigTool-Android/test-data-v2/docs/Testing/TestData/FirmwareRepository/Unavailable/vanish.bin",
       "modem": "TEST",
       "sha256": "c39e13bbb05726a3c0747d3ca54c27e3f86bc10a1d3754cd031bd1ca7256c8ed"
     }
