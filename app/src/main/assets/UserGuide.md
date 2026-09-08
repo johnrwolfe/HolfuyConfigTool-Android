@@ -101,3 +101,8 @@ If the firmware update is interrupted, execute these steps:
 1. Connect the USB cable to the Android device.
 1. Connect the USB cable to the station.
 1. Continue with the Firmware Update Procedure specified above, starting with turning on the station.
+
+## Send Diagnostics
+
+If you discover an issue with the app, tap **Help** and then tap **Send Diagnostics**.
+A report will be generated and stored in a text file.  Please send that file to Holfuy Support.
