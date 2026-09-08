@@ -62,38 +62,43 @@ The repository maintains:
 ## Release Process
 
 1. Create a release branch from `master`.
-2. Merge each branch (feature, issue, documentation, etc.) targeted for this release into the newly created release branch.
+2. Merge each branch (feature, issue, documentation, etc.) targeted for this release into the newly created release-candidate branch.
 3. Update:
    - `versionName`
    - `versionCode`
    - CHANGELOG
    - Release History
    - Google Play assets, as required
-4. Build release APK from the release branch:
-
+4. Merge release-candidate branch into the upstream master.
+5. Create a Git tag on the upstream master identifying the source from which the release is built (e.g., v1.0.0-rc1, v1.0.0, etc.) annotating it with `versionCode` and Play track.
+6. Note that some test cases require an override of the URL for the manifest.  These test cases must be executed using a debug APK.  All other test cases must be executed with a release APK.
+6. Build debug APK from the upstream master:
+   ```bash
+   ./gradlew clean assembleDebug
+   ```
+7. Build release APK from the upstream master:
    ```bash
    ./gradlew clean assembleRelease
    ```
-   
-5. Install release APK:
-
+8. Install the debug APK:
+   ```bash
+   adb install -r app/build/outputs/apk/debug/app-debug.apk
+   ```
+9. Execute all test cases that require an override of the manifest URL.
+10. Install release APK:
    ```bash
    adb install -r app/build/outputs/apk/release/app-release.apk
-   ```
-   
-6. Execute the release test plan on the release APK.
-7. Build a signed Android App Bundle:
-
+   ```   
+11. Execute all test cases that do not require an override of the manifest URL.
+12. Build a signed Android App Bundle:
    ```bash
    ./gradlew clean bundleRelease
    ```
-
-8. Create a Git tag (e.g., v1.0.0-rc1, v1.0.0, etc.) annotating it with `versionCode` and Play track.
-9. Upload the bundle to the Google Play Console.
-10. Upload updated Play Store assets, screenshots, and "What's New" text if necessary.
-11. Submit the release for review by Play.
-12. After approval from Play, install the app from the appropriate Play testing track and perform a brief acceptance test.
-13. Promote the release to the next Play track if appropriate.
+13. Upload the bundle to the Google Play Console.
+14. Upload updated Play Store assets, screenshots, and "What's New" text if necessary.
+15. Submit the release for review by Play.
+16. After approval from Play, install the app from the appropriate Play testing track and perform a brief acceptance test.
+17. Promote the release to the next Play track if appropriate.
 
 ## Guiding Principles
 
