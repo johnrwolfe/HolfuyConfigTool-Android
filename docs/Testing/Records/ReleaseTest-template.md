@@ -1,6 +1,8 @@
 # Holfuy Upgrader Release Test Record
 
-**Release:** ?.?.?
+**App Release Name:** ?.?.?
+
+**Test Data Tag:** 
 
 **Date Tested:**
 
@@ -55,6 +57,16 @@
 | TC-014    |        |       |
 | TC-015    |        |       |
 | TC-016    |        |       |
+| TC-017    |        |       |
+| TC-018    |        |       |
+| TC-019    |        |       |
+| TC-020    |        |       |
+| TC-022    |        |       |
+| TC-023    |        |       |
+| TC-024    |        |       |
+| TC-025    |        |       |
+| TC-026    |        |       |
+
 
 ---
 
