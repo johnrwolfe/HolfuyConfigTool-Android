@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.holfuy.configtool.device.HolfuyDevice
+import com.holfuy.configtool.diagnostics.DiagnosticLogger
 import com.holfuy.configtool.firmware.FirmwareRepository
 import com.holfuy.configtool.firmware.FirmwareSelectionStore
 import com.holfuy.configtool.usb.UsbDeviceProvider
@@ -13,7 +14,8 @@ class MainViewModelFactory(
     private val holfuyDevice: HolfuyDevice,
     private val usbDeviceProvider: UsbDeviceProvider,
     private val firmwareRepository: FirmwareRepository,
-    private val firmwareSelectionStore: FirmwareSelectionStore
+    private val firmwareSelectionStore: FirmwareSelectionStore,
+    private val diagnosticLogger: DiagnosticLogger
 ) : ViewModelProvider.Factory
 {
     override fun <T : ViewModel> create(
@@ -26,7 +28,8 @@ class MainViewModelFactory(
             holfuyDevice,
             usbDeviceProvider,
             firmwareRepository,
-            firmwareSelectionStore
+            firmwareSelectionStore,
+            diagnosticLogger
         ) as T
     }
 }

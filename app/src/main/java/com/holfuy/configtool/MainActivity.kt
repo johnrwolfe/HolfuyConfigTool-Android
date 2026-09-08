@@ -23,13 +23,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.holfuy.configtool.diagnostics.DiagnosticReport
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.firmware.FIRMWARE_EXTENSION
 import com.holfuy.configtool.firmware.MAX_FIRMWARE_SIZE
 import com.holfuy.configtool.firmware.MIN_FIRMWARE_SIZE
 import com.holfuy.configtool.firmware.UriFirmwareFile
-import com.holfuy.configtool.HolfuyApplication
 import com.holfuy.configtool.ui.screens.HelpScreen
 import com.holfuy.configtool.ui.screens.MainScreen
 import com.holfuy.configtool.ui.screens.RepositoryConfigurationScreen
@@ -37,24 +39,26 @@ import com.holfuy.configtool.ui.screens.SelectFirmwareScreen
 import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.theme.HolfuyConfigToolTheme
 import com.holfuy.configtool.ui.viewmodel.MainViewModel
-import com.holfuy.configtool.ui.viewmodel.MainViewModelFactory
 import com.holfuy.configtool.usb.HolfuyUsb
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class MainActivity : ComponentActivity()
 {
     companion object
     {
         private const val TAG = "HolfuyUSB-A"
-    
+
         private const val ACTION_USB_PERMISSION =
             "com.holfuy.configtool.USB_PERMISSION"
     }
-    
-    private lateinit var permissionIntent: PendingIntent 
+
+    private lateinit var permissionIntent: PendingIntent
     private lateinit var activityViewModel: MainViewModel
     private lateinit var usbManager: UsbManager
-    
+
     private fun getDisplayName(
         contentResolver: ContentResolver,
         uri: Uri
@@ -67,18 +71,25 @@ class MainActivity : ComponentActivity()
             null,
             null
         )?.use { cursor ->
-    
+
             val nameIndex =
-                cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-    
-            if (nameIndex >= 0 && cursor.moveToFirst()) {
-                return cursor.getString(nameIndex)
+                cursor.getColumnIndex(
+                    OpenableColumns.DISPLAY_NAME
+                )
+
+            if (
+                nameIndex >= 0 &&
+                cursor.moveToFirst()
+            ) {
+                return cursor.getString(
+                    nameIndex
+                )
             }
         }
-    
+
         return "firmware.bin"
     }
-    
+
     private fun registerReceivers()
     {
         registerReceiver(
@@ -86,7 +97,7 @@ class MainActivity : ComponentActivity()
             IntentFilter(ACTION_USB_PERMISSION),
             RECEIVER_NOT_EXPORTED
         )
-        
+
         registerReceiver(
             usbAttachReceiver,
             IntentFilter(
@@ -94,44 +105,43 @@ class MainActivity : ComponentActivity()
             ),
             RECEIVER_NOT_EXPORTED
         )
-        
+
         registerReceiver(
             usbDetachReceiver,
             IntentFilter(
                 UsbManager.ACTION_USB_DEVICE_DETACHED
             ),
             RECEIVER_NOT_EXPORTED
-        )    
+        )
     }
-    
+
     private fun unregisterReceivers()
     {
         unregisterReceiver(
             usbPermissionReceiver
         )
-        
+
         unregisterReceiver(
             usbAttachReceiver
         )
-        
+
         unregisterReceiver(
             usbDetachReceiver
         )
     }
-    
-    // USB permission acquisition is intentionally initiated by the Connect 
-    // action rather than by the attach broadcast. This provides a consistent 
-    // workflow regardless of whether the app is already running when the station 
-    // is attached, whether the permission dialog was previously dismissed, or 
-    // how individual Android versions deliver USB lifecycle events.    
+
+    // USB permission acquisition is intentionally initiated by the Connect
+    // action rather than by the attach broadcast. This provides a consistent
+    // workflow regardless of whether the app is already running when the station
+    // is attached, whether the permission dialog was previously dismissed, or
+    // how individual Android versions deliver USB lifecycle events.
     private fun connectOrRequestPermission()
     {
         if (ensureUsbPermission()) {
-    
             activityViewModel.connect()
         }
     }
-    
+
     private fun findSupportedUsbDevice(): UsbDevice?
     {
         return usbManager.deviceList
@@ -140,7 +150,7 @@ class MainActivity : ComponentActivity()
                 HolfuyUsb.isSupported(it)
             }
     }
-    
+
     // true = permission already granted
     // false = permission not granted yet but has been requested
     //         if a supported device is attached
@@ -149,38 +159,45 @@ class MainActivity : ComponentActivity()
         val usbDevice =
             findSupportedUsbDevice()
                 ?: return false
-    
+
         if (usbManager.hasPermission(usbDevice)) {
-    
+
             Log.i(
                 TAG,
                 "USB permission already granted"
             )
-    
+
             activityViewModel.setUsbPermissionGranted(
                 true
             )
-    
+
             return true
         }
-    
+
         Log.i(
             TAG,
             "Requesting USB permission"
         )
-    
+
+        (application as HolfuyApplication)
+            .diagnosticLogger
+            .recordUsbPermissionRequested()
+
         usbManager.requestPermission(
             usbDevice,
             permissionIntent
         )
-    
+
         return false
     }
-    
+
     private fun Intent.getSupportedUsbDevice(): UsbDevice?
     {
         val usbDevice =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (
+                Build.VERSION.SDK_INT >=
+                Build.VERSION_CODES.TIRAMISU
+            ) {
                 getParcelableExtra(
                     UsbManager.EXTRA_DEVICE,
                     UsbDevice::class.java
@@ -191,20 +208,21 @@ class MainActivity : ComponentActivity()
                     UsbManager.EXTRA_DEVICE
                 )
             } ?: return null
-    
+
         if (!HolfuyUsb.isSupported(usbDevice)) {
-    
+
             Log.i(
                 TAG,
-                "Ignoring unsupported USB device productId=0x${usbDevice.productId.toString(16)}"
+                "Ignoring unsupported USB device productId=0x" +
+                    usbDevice.productId.toString(16)
             )
-    
+
             return null
         }
-    
+
         return usbDevice
     }
-    
+
     private val usbPermissionReceiver =
         object : BroadcastReceiver()
         {
@@ -217,37 +235,51 @@ class MainActivity : ComponentActivity()
                     TAG,
                     "intent extras=${intent.extras}"
                 )
-    
+
                 Log.i(
                     TAG,
                     "usbPermissionReceiver action=${intent.action}"
                 )
-    
-                if (intent.action != ACTION_USB_PERMISSION) {
+
+                if (
+                    intent.action !=
+                    ACTION_USB_PERMISSION
+                ) {
                     return
                 }
-    
+
                 val granted =
                     intent.getBooleanExtra(
                         UsbManager.EXTRA_PERMISSION_GRANTED,
                         false
                     )
-    
+
                 Log.i(
                     TAG,
-                    "USB permission response received granted=$granted"
+                    "USB permission response received " +
+                        "granted=$granted"
                 )
-    
+
+                if (granted) {
+                    (application as HolfuyApplication)
+                        .diagnosticLogger
+                        .recordUsbPermissionGranted()
+                } else {
+                    (application as HolfuyApplication)
+                        .diagnosticLogger
+                        .recordUsbPermissionDenied()
+                }
+
                 activityViewModel.setUsbPermissionGranted(
                     granted
                 )
-    
+
                 if (granted) {
                     activityViewModel.connect()
                 }
             }
         }
-            
+
     private val usbAttachReceiver =
         object : BroadcastReceiver()
         {
@@ -262,20 +294,23 @@ class MainActivity : ComponentActivity()
                 ) {
                     return
                 }
-    
+
                 intent.getSupportedUsbDevice()
                     ?: return
-    
+
                 Log.i(
                     TAG,
                     "Supported USB device attached"
                 )
-    
+
+                (application as HolfuyApplication)
+                    .diagnosticLogger
+                    .recordUsbAttached()
+
                 activityViewModel.refreshUsbState()
-    
             }
         }
-    
+
     private val usbDetachReceiver =
         object : BroadcastReceiver()
         {
@@ -290,44 +325,133 @@ class MainActivity : ComponentActivity()
                 ) {
                     return
                 }
-    
+
                 intent.getSupportedUsbDevice()
                     ?: return
-    
+
                 Log.i(
                     TAG,
                     "Supported USB device detached"
                 )
-    
+
+                (application as HolfuyApplication)
+                    .diagnosticLogger
+                    .recordUsbDetached()
+
                 activityViewModel.onUsbDetached()
             }
         }
-    
-    override fun onCreate(savedInstanceState: Bundle?)
+
+    private fun sendDiagnostics(
+        application: HolfuyApplication
+    )
+    {
+        lifecycleScope.launch {
+            try {
+                val reportFile =
+                    withContext(Dispatchers.IO) {
+
+                        val history =
+                            application
+                                .diagnosticLogger
+                                .snapshot()
+
+                        val report =
+                            DiagnosticReport.generate(
+                                context = application,
+                                history = history,
+                                deviceState =
+                                    DeviceRepository.state,
+                                repositoryStatus =
+                                    activityViewModel.repositoryStatus,
+                                firmwareSelection =
+                                    application
+                                        .firmwareSelectionStore
+                                        .getSelection()
+                            )
+
+                        File(
+                            cacheDir,
+                            "holfuy-diagnostics.txt"
+                        ).apply {
+                            writeText(report)
+                        }
+                    }
+
+                val uri =
+                    FileProvider.getUriForFile(
+                        this@MainActivity,
+                        "${application.packageName}.fileprovider",
+                        reportFile
+                    )
+
+                val sendIntent =
+                    Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+
+                        putExtra(
+                            Intent.EXTRA_SUBJECT,
+                            "Holfuy Upgrader Diagnostics"
+                        )
+
+                        putExtra(
+                            Intent.EXTRA_STREAM,
+                            uri
+                        )
+
+                        addFlags(
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    }
+
+                startActivity(
+                    Intent.createChooser(
+                        sendIntent,
+                        "Send Diagnostics"
+                    )
+                )
+            }
+            catch (e: Exception) {
+
+                Log.e(
+                    TAG,
+                    "Unable to send diagnostics",
+                    e
+                )
+            }
+        }
+    }
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    )
     {
         Log.d(
             TAG,
-            "onCreate savedInstanceState=${savedInstanceState != null}"
+            "onCreate savedInstanceState=" +
+                "${savedInstanceState != null}"
         )
-    
-        super.onCreate(savedInstanceState)
-    
+
+        super.onCreate(
+            savedInstanceState
+        )
+
         usbManager =
             getSystemService(
                 Context.USB_SERVICE
             ) as UsbManager
-    
+
         val application =
             application as HolfuyApplication
-    
+
         activityViewModel =
             ViewModelProvider(
                 this,
                 application.mainViewModelFactory
             )[MainViewModel::class.java]
-    
+
         registerReceivers()
-    
+
         permissionIntent =
             PendingIntent.getBroadcast(
                 this,
@@ -337,52 +461,54 @@ class MainActivity : ComponentActivity()
                 },
                 PendingIntent.FLAG_MUTABLE
             )
-    
+
         activityViewModel.refreshUsbState()
-    
+
         setContent {
             HolfuyConfigToolTheme {
-    
+
                 val viewModel =
                     activityViewModel
-    
+
                 var showHelp by rememberSaveable {
                     mutableStateOf(false)
                 }
-    
+
                 var showFirmwareSelection by rememberSaveable {
                     mutableStateOf(false)
                 }
-    
+
                 val firmwareFolderPicker =
                     rememberLauncherForActivityResult(
                         contract =
                             ActivityResultContracts.OpenDocumentTree()
                     ) { uri: Uri? ->
-    
+
                         if (uri == null)
                             return@rememberLauncherForActivityResult
-    
+
                         contentResolver.takePersistableUriPermission(
                             uri,
                             Intent.FLAG_GRANT_READ_URI_PERMISSION or
                                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                         )
-    
-                        viewModel.configureRepository(uri)
-    
+
+                        viewModel.configureRepository(
+                            uri
+                        )
+
                         Log.i(
                             TAG,
                             "Firmware folder selected: $uri"
                         )
                     }
-    
+
                 val firmwarePicker =
                     rememberLauncherForActivityResult(
                         contract =
                             ActivityResultContracts.OpenDocument()
                     ) { uri: Uri? ->
-    
+
                         if (uri == null) {
                             /*
                              * Browse was cancelled. Remain on the
@@ -391,18 +517,18 @@ class MainActivity : ComponentActivity()
                              */
                             return@rememberLauncherForActivityResult
                         }
-                        
+
                         contentResolver.takePersistableUriPermission(
                             uri,
                             Intent.FLAG_GRANT_READ_URI_PERMISSION
                         )
-                        
+
                         val fileName =
                             getDisplayName(
                                 contentResolver,
                                 uri
                             )
-    
+
                         val fileSize =
                             contentResolver
                                 .openAssetFileDescriptor(
@@ -413,17 +539,18 @@ class MainActivity : ComponentActivity()
                                     descriptor.length
                                 }
                                 ?: -1L
-    
+
                         if (fileSize < 0) {
-    
+
                             Log.w(
                                 TAG,
-                                "Unable to determine size of selected firmware: $fileName"
+                                "Unable to determine size of " +
+                                    "selected firmware: $fileName"
                             )
-    
+
                             return@rememberLauncherForActivityResult
                         }
-    
+
                         if (
                             fileSize < MIN_FIRMWARE_SIZE ||
                             fileSize > MAX_FIRMWARE_SIZE ||
@@ -432,12 +559,13 @@ class MainActivity : ComponentActivity()
                                 ignoreCase = true
                             )
                         ) {
-    
+
                             Log.w(
                                 TAG,
-                                "Rejected firmware selection: $fileName ($fileSize bytes)"
+                                "Rejected firmware selection: " +
+                                    "$fileName ($fileSize bytes)"
                             )
-    
+
                             val reason =
                                 when {
                                     !fileName.endsWith(
@@ -446,27 +574,34 @@ class MainActivity : ComponentActivity()
                                     ) &&
                                         (
                                             fileSize < MIN_FIRMWARE_SIZE ||
-                                                fileSize > MAX_FIRMWARE_SIZE
+                                            fileSize > MAX_FIRMWARE_SIZE
                                         ) ->
-                                        "The selected file must be a .bin file at least 48 bytes and no larger than 200 kB."
-    
+                                        "The selected file must be a " +
+                                            ".bin file at least 48 bytes " +
+                                            "and no larger than 200 kB."
+
                                     fileSize < MIN_FIRMWARE_SIZE ->
-                                        "The selected file is too small. Firmware files must be at least 48 bytes."
-    
+                                        "The selected file is too small. " +
+                                            "Firmware files must be at least " +
+                                            "48 bytes."
+
                                     fileSize > MAX_FIRMWARE_SIZE ->
-                                        "The selected file is too large. Firmware files must be no larger than 200 kB."
-    
+                                        "The selected file is too large. " +
+                                            "Firmware files must be no larger " +
+                                            "than 200 kB."
+
                                     else ->
-                                        "The selected file is not a .bin firmware file."
+                                        "The selected file is not a " +
+                                            ".bin firmware file."
                                 }
-    
+
                             viewModel.setFirmwareSelectionError(
                                 reason
                             )
-    
+
                             return@rememberLauncherForActivityResult
                         }
-    
+
                         val file =
                             UriFirmwareFile(
                                 context = applicationContext,
@@ -474,102 +609,128 @@ class MainActivity : ComponentActivity()
                                 name = fileName,
                                 size = fileSize
                             )
-    
+
                         Log.i(
                             TAG,
-                            "Selected firmware: ${file.name} (${file.size} bytes)"
+                            "Selected firmware: " +
+                                "${file.name} (${file.size} bytes)"
                         )
-    
+
                         viewModel.setFirmware(
                             file = file,
-                            source = FirmwareSelectionSource.BROWSE,
+                            source =
+                                FirmwareSelectionSource.BROWSE,
                             uri = uri
                         )
-    
+
                         showFirmwareSelection = false
                     }
-    
+
                 val deviceState by
-                    viewModel.deviceStateFlow.collectAsState()
-    
-                if (viewModel.repositoryStatus.configuring) {
-    
+                    viewModel.deviceStateFlow
+                        .collectAsState()
+
+                if (
+                    viewModel.repositoryStatus.configuring
+                ) {
+
                     RepositoryConfigurationScreen(
                         onContinue = {
-    
+
                             viewModel.endRepositoryConfiguration()
-    
-                            firmwareFolderPicker.launch(null)
+
+                            firmwareFolderPicker.launch(
+                                null
+                            )
                         }
                     )
-    
+
                 } else if (showHelp) {
-    
+
                     HelpScreen(
+                        onSendDiagnostics = {
+                            sendDiagnostics(
+                                application
+                            )
+                        },
                         onBack = {
                             showHelp = false
                         }
                     )
-    
+
                 } else if (showFirmwareSelection) {
-    
+
                     SelectFirmwareScreen(
                         repositoryStatus =
                             viewModel.repositoryStatus,
-    
+
                         selectedFirmware =
-                            viewModel.uiState.selectedFirmware?.file,
-    
+                            viewModel
+                                .uiState
+                                .selectedFirmware
+                                ?.file,
+
                         firmwareSelectionError =
-                            viewModel.uiState.firmwareSelectionError,
-    
+                            viewModel
+                                .uiState
+                                .firmwareSelectionError,
+
                         selectedFirmwareSource =
-                            viewModel.uiState.selectedFirmware?.source,
-    
+                            viewModel
+                                .uiState
+                                .selectedFirmware
+                                ?.source,
+
                         onSelect = { file, modem ->
-    
+
                             viewModel.setFirmware(
                                 file,
                                 FirmwareSelectionSource.REPOSITORY,
                                 modem
                             )
-    
+
                             showFirmwareSelection = false
                         },
-    
+
                         onBrowse = {
                             viewModel.clearFirmwareSelectionError()
+
                             firmwarePicker.launch(
                                 arrayOf("*/*")
                             )
                         },
-    
+
                         onBack = {
                             showFirmwareSelection = false
                         }
                     )
-    
+
                 } else {
-    
+
                     MainScreen(
-                        uiState = viewModel.uiState,
-                        deviceState = deviceState,
-    
+                        uiState =
+                            viewModel.uiState,
+
+                        deviceState =
+                            deviceState,
+
                         onConnectClick =
                             ::connectOrRequestPermission,
-    
+
                         onSelectFirmwareClick = {
-                            activityViewModel.clearTransientStatus()
+                            activityViewModel
+                                .clearTransientStatus()
+
                             showFirmwareSelection = true
                         },
-    
+
                         onUpdateFirmwareClick =
                             viewModel::updateFirmware,
-    
+
                         onHelpClick = {
                             showHelp = true
                         },
-    
+
                         repositoryStatus =
                             viewModel.repositoryStatus
                     )
@@ -577,46 +738,52 @@ class MainActivity : ComponentActivity()
             }
         }
     }
-    
+
     override fun onDestroy()
     {
-
         Log.d(
             TAG,
-            "onDestroy changingConfigurations=$isChangingConfigurations"
+            "onDestroy changingConfigurations=" +
+                isChangingConfigurations
         )
-        
+
         unregisterReceivers()
-        
+
         super.onDestroy()
     }
-    
+
     override fun onResume()
     {
         super.onResume()
-    
+
         activityViewModel.refreshUsbState()
-    
+
         Log.i(
             TAG,
-            "onResume attached=${DeviceRepository.stateFlow.value.attached} " +
-                "permissionGranted=${DeviceRepository.stateFlow.value.permissionGranted}"
+            "onResume attached=" +
+                "${DeviceRepository.stateFlow.value.attached} " +
+                "permissionGranted=" +
+                "${DeviceRepository.stateFlow.value.permissionGranted}"
         )
-    
+
         activityViewModel.onResume()
     }
-    
+
     override fun onConfigurationChanged(
         newConfig: Configuration
     )
     {
-        super.onConfigurationChanged(newConfig)
-    
+        super.onConfigurationChanged(
+            newConfig
+        )
+
         Log.i(
             TAG,
-            "onConfigurationChanged keyboard=${newConfig.keyboard} " +
-            "hardKeyboardHidden=${newConfig.hardKeyboardHidden} " +
-            "navigation=${newConfig.navigation}"
+            "onConfigurationChanged keyboard=" +
+                "${newConfig.keyboard} " +
+                "hardKeyboardHidden=" +
+                "${newConfig.hardKeyboardHidden} " +
+                "navigation=${newConfig.navigation}"
         )
     }
 }

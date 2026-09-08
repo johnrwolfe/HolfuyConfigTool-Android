@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.holfuy.configtool.diagnostics.DiagnosticLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
@@ -19,7 +20,8 @@ private val client = OkHttpClient()
 
 class FirmwareRepository(
     private val storage: RepositoryStorage,
-    private val manifestConfiguration: ManifestConfiguration
+    private val manifestConfiguration: ManifestConfiguration,
+    private val diagnosticLogger: DiagnosticLogger
 )
 {
     companion object
@@ -97,6 +99,7 @@ class FirmwareRepository(
     )
     {
         var lastException: Exception? = null
+
         val tempFilename =
             "${descriptor.filename}.part"
 
@@ -211,6 +214,10 @@ class FirmwareRepository(
                         e
                     )
 
+                    diagnosticLogger.recordFirmwareDownloadFailed(
+                        descriptor.filename
+                    )
+
                     firmwareStatus +=
                         FirmwareStatus.Missing(
                             filename =
@@ -303,6 +310,10 @@ class FirmwareRepository(
                                 e
                             )
 
+                            diagnosticLogger.recordFirmwareDownloadFailed(
+                                descriptor.filename
+                            )
+
                             firmwareStatus +=
                                 FirmwareStatus.Outdated(
                                     file =
@@ -369,6 +380,10 @@ class FirmwareRepository(
                             "Unable to replace unreadable " +
                                 "${descriptor.filename}.",
                             downloadException
+                        )
+
+                        diagnosticLogger.recordFirmwareDownloadFailed(
+                            descriptor.filename
                         )
 
                         firmwareStatus +=
@@ -520,7 +535,7 @@ class FirmwareRepository(
 
         return reconciled
     }
-    
+
     fun firmwareFile(
         name: String,
         size: Long
@@ -535,19 +550,21 @@ class FirmwareRepository(
     suspend fun refresh()
     {
         if (!refreshMutex.tryLock()) {
-    
+
             Log.i(
                 TAG,
                 "Refresh already in progress; ignoring request."
             )
-    
+
             return
         }
-    
+
         try {
-    
+
+            diagnosticLogger.recordRepositoryRefreshStarted()
+
             withContext(Dispatchers.IO) {
-    
+
                 /*
                  * Immediately reconcile the previous snapshot against the
                  * actual repository contents.
@@ -562,22 +579,27 @@ class FirmwareRepository(
                             status.firmware
                         )
                 )
-    
+
                 try {
-    
+
                     val manifest =
                         try {
-    
+
                             loadManifest()
-    
+
                         } catch (e: Exception) {
-    
+
                             Log.w(
                                 TAG,
                                 "Unable to download firmware manifest.",
                                 e
                             )
-    
+
+                            diagnosticLogger.recordRepositoryRefreshFailed(
+                                e.message
+                                    ?: "Unable to download firmware manifest"
+                            )
+
                             /*
                              * Reconcile once more because repository contents
                              * may have changed while the manifest request was
@@ -593,10 +615,10 @@ class FirmwareRepository(
                                         status.firmware
                                     )
                             )
-    
+
                             return@withContext
                         }
-    
+
                     /*
                      * Build the complete manifest-derived snapshot privately.
                      * Nothing becomes visible to Compose until synchronization
@@ -606,7 +628,7 @@ class FirmwareRepository(
                         synchronizeRepository(
                             manifest
                         )
-    
+
                     /*
                      * Atomically replace the temporary snapshot with the
                      * complete, authoritative repository state.
@@ -617,22 +639,24 @@ class FirmwareRepository(
                         lastCheckFailed = null,
                         firmware = firmwareStatus
                     )
-    
+
                     Log.i(
                         TAG,
                         "Refresh completed successfully."
                     )
-    
+
+                    diagnosticLogger.recordRepositoryRefreshCompleted()
+
                 } finally {
-    
+
                     status = status.copy(
                         refreshing = false
                     )
                 }
             }
-    
+
         } finally {
-    
+
             refreshMutex.unlock()
         }
     }
