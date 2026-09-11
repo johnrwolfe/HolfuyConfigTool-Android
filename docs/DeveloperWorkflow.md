@@ -59,6 +59,15 @@ The repository maintains:
 - Release History
 - Google Play assets
 
+## Pre-release Process
+
+1. Optimize imports.  Let Android Studio remove unnecessary imports and sort the import list.  
+    - Select "app" in the left panel of the IDE.
+    - Select "Optimize imports" on the CME
+2. Inspect code.  Let Android Studio inspect the entire project.
+    - Select "app" in the left panel of the IDE.
+    - Select "Analyze > Inspect code" in the CME
+
 ## Release Process
 
 1. Create a release branch from `master`.
@@ -99,6 +108,15 @@ The repository maintains:
 15. Submit the release for review by Play.
 16. After approval from Play, install the app from the appropriate Play testing track and perform a brief acceptance test.
 17. Promote the release to the next Play track if appropriate.
+
+## Google Play Console
+
+Google Play Console treats **Internal Testing releases** and **Google Play Store listing/metadata changes** as separate workflows.
+
+* **Internal Testing:** The **Internal Testing** page is the authoritative source for the status of the uploaded app release. Use it to verify that the release has been processed and is available to testers.
+* **Store listing and metadata:** Changes to the Play Store listing, such as descriptions, graphics, or other store metadata, are tracked separately through **Publishing Overview**. A pending change shown there does not necessarily indicate that the Internal Testing release is still pending.
+* **Release verification:** Do not use **Publishing Overview** as the authoritative indication that an Internal Testing APK/AAB has been published. Check the **Internal Testing** page directly.
+* **Store-listing verification:** Conversely, use **Publishing Overview** to determine whether store listing or other metadata changes remain pending publication.
 
 ## Guiding Principles
 
