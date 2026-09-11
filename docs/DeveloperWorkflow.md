@@ -67,6 +67,9 @@ The repository maintains:
 2. Inspect code.  Let Android Studio inspect the entire project.
     - Select "app" in the left panel of the IDE.
     - Select "Analyze > Inspect code" in the CME
+3. Build release-candidate code and then:
+    - Smoke-test on primary test device
+    - Make new screenshots for Play Store and README, storing them in repo and README
 
 ## Release Process
 
@@ -75,9 +78,11 @@ The repository maintains:
 3. Update:
    - `versionName`
    - `versionCode`
+   - README
    - CHANGELOG
    - Release History
    - Google Play assets, as required
+   - Test record, creating a blank one for the release
 4. Merge release-candidate branch into the upstream master.
 5. Create a Git tag on the upstream master identifying the source from which the release is built (e.g., v1.0.0-rc1, v1.0.0, etc.) annotating it with `versionCode` and Play track.
 6. Note that some test cases require an override of the URL for the manifest.  These test cases must be executed using a debug APK.  All other test cases must be executed with a release APK.
@@ -103,11 +108,12 @@ The repository maintains:
    ```bash
    ./gradlew clean bundleRelease
    ```
-13. Upload the bundle to the Google Play Console.
-14. Upload updated Play Store assets, screenshots, and "What's New" text if necessary.
-15. Submit the release for review by Play.
-16. After approval from Play, install the app from the appropriate Play testing track and perform a brief acceptance test.
-17. Promote the release to the next Play track if appropriate.
+13. Update test record and commit it to master on the upstream repo.
+14. Upload the bundle to the Google Play Console.
+15. Upload updated Play Store assets, screenshots, and "What's New" text if necessary.
+16. Submit the release for review by Play.
+17. After approval from Play, install the app from the appropriate Play testing track and perform a brief acceptance test.
+18. Promote the release to the next Play track if appropriate.
 
 ## Google Play Console
 

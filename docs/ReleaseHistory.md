@@ -15,6 +15,7 @@ Play track involved.
 |------------:|-------------|---------|------------|------|-------|
 | 1 | 1.0 | v1.0 | Internal testing | 2026-07-09 | Initial internal testing release. |
 | 2 | 1.0.0 | v1.0.0-rc1 | Internal testing | 2026-07-17 | Release candidate including Help screen rotation fix (#5), redesigned USB permission workflow (#6), status message fix (#11), updated User's Guide, and Play Store assets. |
+| 3 | 1.0.0 | v1.0.0-rc2 | Internal testing | 2026-09-11 | Release candidate, #13, #14, #15 |
 
 ## Notes
 

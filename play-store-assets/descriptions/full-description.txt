@@ -14,7 +14,7 @@ Requirements
 
 • Android device with USB OTG support
 • USB OTG adapter (if required by your device)
-• USB cable with a USB Micro-B connector for the weather station
+• USB cable with a USB Micro-B  USB-C connector for the weather station
 • Firmware image supplied by Holfuy
 
 Holfuy Upgrader does not collect personal information, display advertising, or require a user account. All communication occurs locally between your Android device and the connected weather station.
