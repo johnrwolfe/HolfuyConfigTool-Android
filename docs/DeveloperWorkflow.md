@@ -84,8 +84,7 @@ The repository maintains:
    - Google Play assets, as required
    - Test record, creating a blank one for the release
 4. Merge release-candidate branch into the upstream master.
-5. Create a Git tag on the upstream master identifying the source from which the release is built (e.g., v1.0.0-rc1, v1.0.0, etc.) annotating it with `versionCode` and Play track.
-6. Note that some test cases require an override of the URL for the manifest.  These test cases must be executed using a debug APK.  All other test cases must be executed with a release APK.
+5. Note that some test cases require an override of the URL for the manifest.  These test cases must be executed using a debug APK.  All other test cases must be executed with a release APK.
 6. Build debug APK from the upstream master:
    ```bash
    ./gradlew clean assembleDebug
@@ -109,11 +108,12 @@ The repository maintains:
    ./gradlew clean bundleRelease
    ```
 13. Update test record and commit it to master on the upstream repo.
-14. Upload the bundle to the Google Play Console.
-15. Upload updated Play Store assets, screenshots, and "What's New" text if necessary.
-16. Submit the release for review by Play.
-17. After approval from Play, install the app from the appropriate Play testing track and perform a brief acceptance test.
-18. Promote the release to the next Play track if appropriate.
+14. Create a Git tag on the upstream master identifying the source from which the release is built (e.g., v1.0.0-rc1, v1.0.0, etc.) annotating it with `versionCode` and Play track.
+15. Upload the bundle to the Google Play Console.
+16. Upload updated Play Store assets, screenshots, and "What's New" text if necessary.
+17. Submit the release for review by Play.
+18. After approval from Play, install the app from the appropriate Play testing track and perform a brief acceptance test.
+19. Promote the release to the next Play track if appropriate.
 
 ## Google Play Console
 
