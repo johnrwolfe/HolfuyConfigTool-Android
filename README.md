@@ -18,8 +18,8 @@ Licensed under the Apache License, Version 2.0. See the LICENSE file for details
 
 | | | |
 |:-:|:-:|:-:|
-| <img src="play-store-assets/screenshots/phone/02-Attached.jpg" width="250"> | <img src="play-store-assets/screenshots/phone/03-USB_PermissionRequest.jpg" width="250"> | <img src="play-store-assets/screenshots/phone/05-FirmwareSelected.jpg" width="250"> |
-| **Station Detected** | **USB Permission** | **Ready to Update** |
+| <img src="play-store-assets/screenshots/phone/02-SelectFirmware.jpg" width="250"> | <img src="play-store-assets/screenshots/phone/03-USB_PermissionRequest.jpg" width="250"> | <img src="play-store-assets/screenshots/phone/04-FirmwareUpdating.jpg" width="250"> |
+| **Select Firmware** | **USB Permission** | **Firmware Updating** |
 
 ## Features
 
@@ -28,13 +28,6 @@ Licensed under the Apache License, Version 2.0. See the LICENSE file for details
 * Automatic detection of supported Holfuy weather stations
 * Compatible with Android 8.0 (API 26) and later
 * Tested on Android 8.1, 12, 15, and 16
-
-## Requirements
-
-- Android device with USB OTG support
-- USB OTG adapter (if required by your device)
-- USB cable with a USB Micro-B connector for the weather station
-- Firmware image supplied by Holfuy
 
 ## Building a Development APK
 
