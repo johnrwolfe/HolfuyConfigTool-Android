@@ -1,9 +1,25 @@
 package com.holfuy.configtool.ui.state
 
+import com.holfuy.configtool.firmware.FirmwareFile
+
+enum class FirmwareSelectionSource
+{
+    REPOSITORY,
+    BROWSE
+}
+
+data class SelectedFirmware(
+    val file: FirmwareFile,
+    val source: FirmwareSelectionSource,
+    val modem: String? = null
+)
+
 data class MainUiState(
     val connecting: Boolean = false,
-    val firmwareFileName: String? = null,
-    val firmwareSize: Int? = null,
-    val errorMessage: String? = null,
-    val updateCompleted: Boolean = false
+    val selectedFirmware: SelectedFirmware? = null,
+    val selectedFirmwareAvailable: Boolean = false,
+    val firmwareSelectionError: String? = null,
+    val connectionError: String? = null,
+    val updateCompleted: Boolean = false,
+    val firmwareUpdateError: String? = null
 )

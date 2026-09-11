@@ -21,13 +21,14 @@ import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @Composable
 fun HelpScreen(
+    onSendDiagnostics: () -> Unit,
     onBack: () -> Unit
 )
 {
     BackHandler {
         onBack()
     }
-    
+
     val context = LocalContext.current
 
     val helpText = remember {
@@ -51,6 +52,16 @@ fun HelpScreen(
 
         Spacer(
             modifier = Modifier.height(16.dp)
+        )
+
+        Button(
+            onClick = onSendDiagnostics
+        ) {
+            Text("Send Diagnostics")
+        }
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
         )
 
         Button(

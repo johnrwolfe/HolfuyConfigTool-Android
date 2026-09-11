@@ -21,7 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.holfuy.configtool.BuildConfig
 import com.holfuy.configtool.device.DeviceState
+import com.holfuy.configtool.firmware.FirmwareStatus
+import com.holfuy.configtool.firmware.RepositoryStatus
+import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.state.MainUiState
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 private val SECTION_SPACING = 24.dp
 
@@ -32,9 +39,42 @@ fun MainScreen(
     onConnectClick: () -> Unit,
     onSelectFirmwareClick: () -> Unit,
     onUpdateFirmwareClick: () -> Unit,
-    onHelpClick: () -> Unit
+    onHelpClick: () -> Unit,
+    repositoryStatus: RepositoryStatus
 )
 {
+    val selectedFirmware =
+        uiState.selectedFirmware
+
+    val selectedRepositoryDisposition =
+        selectedFirmware
+            ?.takeIf {
+                it.source ==
+                    FirmwareSelectionSource.REPOSITORY
+            }
+            ?.let { selected ->
+                repositoryStatus.firmware
+                    .firstOrNull {
+                        it.filename ==
+                            selected.file.name
+                    }
+            }
+
+    val selectedFirmwareAvailable =
+        when {
+            selectedFirmware == null ->
+                false
+
+            selectedFirmware.source ==
+                FirmwareSelectionSource.BROWSE ->
+                uiState.selectedFirmwareAvailable
+
+            else ->
+                selectedRepositoryDisposition != null &&
+                    selectedRepositoryDisposition !is
+                        FirmwareStatus.Missing
+        }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -49,7 +89,9 @@ fun MainScreen(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
 
         Button(
             onClick = onHelpClick
@@ -57,7 +99,9 @@ fun MainScreen(
             Text("Help")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
 
         Button(
             enabled = !deviceState.updateInProgress,
@@ -66,7 +110,9 @@ fun MainScreen(
             Text("Select Firmware")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
 
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -76,24 +122,118 @@ fun MainScreen(
             ) {
                 Text("Selected Firmware")
 
-                Text(
-                    uiState.firmwareFileName
-                        ?: "No file selected"
-                )
+                if (selectedFirmware == null) {
 
-                uiState.firmwareSize?.let {
-                    Text("Size: $it bytes")
+                    Text("No file selected")
+
+                } else {
+
+                    Text(
+                        selectedFirmware.file.name
+                    )
+
+                    Text(
+                        "Size: ${selectedFirmware.file.size} bytes"
+                    )
+
+                    if (
+                        selectedFirmware.source ==
+                            FirmwareSelectionSource.BROWSE
+                    ) {
+
+                        Text(
+                            if (
+                                uiState.selectedFirmwareAvailable
+                            )
+                                "Custom"
+                            else
+                                "Missing"
+                        )
+
+                    } else {
+
+                        when (selectedRepositoryDisposition) {
+
+                            is FirmwareStatus.Current -> {
+                                Text("Current")
+                            }
+
+                            is FirmwareStatus.Outdated -> {
+                                Text("Outdated")
+                            }
+
+                            is FirmwareStatus.Custom -> {
+                                Text("Custom")
+                            }
+
+                            is FirmwareStatus.Missing,
+                            null -> {
+                                Text("Missing")
+                            }
+                        }
+
+                        if (repositoryStatus.refreshing) {
+
+                            Text(
+                                "Refreshing firmware repository...",
+                                style =
+                                    MaterialTheme.typography.bodySmall
+                            )
+
+                        } else {
+
+                            repositoryStatus.lastSuccessfullyChecked
+                                ?.let(::formatInstant)
+                                ?.let { checkedAt ->
+
+                                    Text(
+                                        "Last checked: $checkedAt",
+                                        style =
+                                            MaterialTheme.typography.bodySmall
+                                    )
+                                }
+
+                            val lastCheckFailed =
+                                repositoryStatus.lastCheckFailed
+
+                            val lastSuccessfullyChecked =
+                                repositoryStatus.lastSuccessfullyChecked
+
+                            if (
+                                lastCheckFailed != null &&
+                                (
+                                    lastSuccessfullyChecked == null ||
+                                        lastCheckFailed >
+                                        lastSuccessfullyChecked
+                                )
+                            ) {
+
+                                Text(
+                                    "Unable to check for firmware at " +
+                                        formatInstant(lastCheckFailed),
+                                    style =
+                                        MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    }
+
+                    selectedFirmware.modem?.let { modem ->
+                        Text("Modem: $modem")
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(SECTION_SPACING))
+        Spacer(
+            modifier = Modifier.height(SECTION_SPACING)
+        )
 
         Button(
-            enabled =
-                deviceState.attached &&
-                !deviceState.connected &&
-                !deviceState.updateInProgress,
+            enabled = deviceState.attached &&
+                    !deviceState.connected &&
+                    !deviceState.updateInProgress &&
+                    !uiState.connecting,
             onClick = onConnectClick
         ) {
             Text(
@@ -104,7 +244,9 @@ fun MainScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(SECTION_SPACING))
+        Spacer(
+            modifier = Modifier.height(SECTION_SPACING)
+        )
 
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -113,29 +255,37 @@ fun MainScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text("Connection Status")
-
+        
                 Text(
                     if (deviceState.connected)
                         "Connected"
                     else
                         "Disconnected"
                 )
+        
+                uiState.connectionError?.let { error ->
+                    Text(error)
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(SECTION_SPACING))
+        Spacer(
+            modifier = Modifier.height(SECTION_SPACING)
+        )
 
         Button(
             enabled =
                 deviceState.connected &&
-                !deviceState.updateInProgress &&
-                uiState.firmwareFileName != null,
+                    !deviceState.updateInProgress &&
+                    selectedFirmwareAvailable,
             onClick = onUpdateFirmwareClick
         ) {
             Text("Update Firmware")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
 
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -145,42 +295,75 @@ fun MainScreen(
             ) {
                 Text("Update Status")
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
 
                 when {
                     deviceState.updateInProgress -> {
-
+                
                         LinearProgressIndicator(
                             progress = {
                                 deviceState.updateProgress / 100f
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text("${deviceState.updateProgress}%")
+                
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
+                
+                        Text(
+                            "${deviceState.updateProgress}%"
+                        )
                     }
-
+                
                     uiState.updateCompleted -> {
-
-                        Text("Firmware update complete")
+                
+                        Text(
+                            "Firmware update completed successfully."
+                        )
                     }
-
+                
+                    uiState.firmwareUpdateError != null -> {
+                
+                        Text(
+                            uiState.firmwareUpdateError
+                                ?: ""
+                        )
+                    }
+                
                     else -> {
-
-                        Spacer(modifier = Modifier.height(20.dp))
+                
+                        Text(
+                            "No update in progress."
+                        )
                     }
                 }
             }
         }
-        
-        Spacer(modifier = Modifier.height(SECTION_SPACING))
+
+        Spacer(
+            modifier = Modifier.height(SECTION_SPACING)
+        )
 
         Text(
             text = "Version ${BuildConfig.VERSION_NAME}",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
     }
+}
+
+private fun formatInstant(
+    instant: Instant
+): String
+{
+    return DateTimeFormatter
+        .ofLocalizedDateTime(
+            FormatStyle.MEDIUM,
+            FormatStyle.SHORT
+        )
+        .withZone(ZoneId.systemDefault())
+        .format(instant)
 }

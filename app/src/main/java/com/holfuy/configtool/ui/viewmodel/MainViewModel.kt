@@ -1,155 +1,458 @@
 package com.holfuy.configtool.ui.viewmodel
 
+import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.holfuy.configtool.device.DeviceRepository
 import com.holfuy.configtool.device.HolfuyDevice
+import com.holfuy.configtool.diagnostics.DiagnosticLogger
+import com.holfuy.configtool.firmware.FirmwareFile
+import com.holfuy.configtool.firmware.FirmwareRepository
+import com.holfuy.configtool.firmware.FirmwareSelectionStore
+import com.holfuy.configtool.firmware.RepositoryStatus
+import com.holfuy.configtool.firmware.StoredFirmwareSelection
+import com.holfuy.configtool.firmware.UriFirmwareFile
+import com.holfuy.configtool.ui.state.FirmwareSelectionSource
 import com.holfuy.configtool.ui.state.MainUiState
+import com.holfuy.configtool.ui.state.SelectedFirmware
+import com.holfuy.configtool.usb.UsbDeviceProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainViewModel(
+    application: Application,
     private val holfuyDevice: HolfuyDevice,
-) : ViewModel()
+    private val usbDeviceProvider: UsbDeviceProvider,
+    private val firmwareRepository: FirmwareRepository,
+    private val firmwareSelectionStore: FirmwareSelectionStore,
+    private val diagnosticLogger: DiagnosticLogger
+) : AndroidViewModel(application)
 {
     companion object {
         private const val TAG = "HolfuyUSB-VM"
+
+        private const val FIRMWARE_UPDATE_FAILURE_MESSAGE =
+            "Device disconnected. Firmware update interrupted. " +
+            "Please restart the firmware upgrade process. " +
+            "If it won't work after several tries please contact " +
+            "Holfuy Support."
     }
-    
+
     var uiState by mutableStateOf(MainUiState())
         private set
-        
-    private var firmwareBytes: ByteArray? = null
+
     val deviceStateFlow = DeviceRepository.stateFlow
-    
-    fun setFirmware(
-        fileName: String,
-        bytes: ByteArray
+
+    val repositoryStatus: RepositoryStatus
+        get() = firmwareRepository.status
+
+    init
+    {
+        restoreFirmwareSelection()
+    }
+
+    private fun restoreFirmwareSelection()
+    {
+        val storedSelection =
+            firmwareSelectionStore.getSelection()
+                ?: return
+
+        val file =
+            when (storedSelection.source)
+            {
+                FirmwareSelectionSource.REPOSITORY ->
+                    firmwareRepository.firmwareFile(
+                        name = storedSelection.name,
+                        size = storedSelection.size
+                    )
+
+                FirmwareSelectionSource.BROWSE ->
+                    storedSelection.uri?.let { uri ->
+                        UriFirmwareFile(
+                            context = getApplication<Application>(),
+                            uri = uri,
+                            name = storedSelection.name,
+                            size = storedSelection.size
+                        )
+                    }
+            }
+                ?: return
+
+        uiState =
+            uiState.copy(
+                selectedFirmware =
+                    SelectedFirmware(
+                        file = file,
+                        source = storedSelection.source,
+                        modem = storedSelection.modem
+                    ),
+                selectedFirmwareAvailable =
+                    file.exists()
+            )
+    }
+
+    fun configureRepository(
+        rootUri: Uri
     )
     {
-        firmwareBytes = bytes
-    
+        diagnosticLogger.recordRepositoryConfigured()
+
+        firmwareRepository.configure(
+            rootUri
+        )
+
+        refreshSelectedFirmwareAvailability()
+    }
+
+    fun endRepositoryConfiguration()
+    {
+        firmwareRepository.endConfiguration()
+    }
+
+    fun onResume()
+    {
+        if (!firmwareRepository.status.configured) {
+
+            diagnosticLogger.recordRepositoryConfigurationStarted()
+
+            firmwareRepository.beginConfiguration()
+
+        } else {
+
+            viewModelScope.launch {
+                if (!DeviceRepository.state.updateInProgress) {
+                    firmwareRepository.refresh()
+                }
+            }
+
+            Log.i(
+                TAG,
+                "Firmware repository: " +
+                    firmwareRepository.status.displayName
+            )
+        }
+
+        refreshSelectedFirmwareAvailability()
+    }
+
+    private fun refreshSelectedFirmwareAvailability()
+    {
+        val selected =
+            uiState.selectedFirmware
+                ?: return
+
         uiState = uiState.copy(
-            firmwareFileName = fileName,
-            firmwareSize = bytes.size,
+            selectedFirmwareAvailable =
+                selected.file.exists()
         )
     }
-        
+
+    fun setFirmwareSelectionError(
+        message: String
+    )
+    {
+        uiState = uiState.copy(
+            firmwareSelectionError = message
+        )
+    }
+
+    fun clearFirmwareSelectionError()
+    {
+        uiState = uiState.copy(
+            firmwareSelectionError = null
+        )
+    }
+
+    fun setFirmware(
+        file: FirmwareFile,
+        source: FirmwareSelectionSource,
+        modem: String? = null,
+        uri: Uri? = null
+    )
+    {
+        diagnosticLogger.recordFirmwareSelected(
+            filename = file.name,
+            size = file.size,
+            source = source.name
+        )
+
+        firmwareSelectionStore.setSelection(
+            StoredFirmwareSelection(
+                source = source,
+                name = file.name,
+                size = file.size,
+                modem = modem,
+                uri = uri
+            )
+        )
+
+        uiState = uiState.copy(
+            selectedFirmware =
+                SelectedFirmware(
+                    file = file,
+                    source = source,
+                    modem = modem
+                ),
+            selectedFirmwareAvailable =
+                file.exists()
+        )
+    }
+
+    fun refreshUsbState()
+    {
+        val usbDevice =
+            usbDeviceProvider.findDevice()
+
+        val permissionGranted =
+            usbDevice?.let {
+                usbDeviceProvider.hasPermission(it)
+            } ?: false
+
+        DeviceRepository.setAttached(
+            usbDevice != null
+        )
+
+        DeviceRepository.setPermissionGranted(
+            permissionGranted
+        )
+
+        if (usbDevice == null) {
+            DeviceRepository.clearConnectionState()
+        }
+    }
+
+    fun setUsbPermissionGranted(
+        granted: Boolean
+    )
+    {
+        DeviceRepository.setPermissionGranted(
+            granted
+        )
+    }
+
+    fun onUsbDetached()
+    {
+        Log.i(
+            TAG,
+            "onUsbDetached()"
+        )
+
+        val updateInProgress =
+            DeviceRepository.state.updateInProgress
+
+        holfuyDevice.onUsbDetached()
+
+        if (updateInProgress) {
+            diagnosticLogger.recordFirmwareUpdateInterrupted()
+
+            uiState = uiState.copy(
+                updateCompleted = false,
+                firmwareUpdateError =
+                    FIRMWARE_UPDATE_FAILURE_MESSAGE
+            )
+        }
+
+        DeviceRepository.clearConnectionState()
+
+        if (!updateInProgress) {
+            clearTransientStatus()
+        }
+    }
+
     fun connect()
     {
-        Log.d(TAG, "connect() called")
-    
-        viewModelScope.launch {
-    
+        Log.d(
+            TAG,
+            "connect() called"
+        )
+
+        diagnosticLogger.recordConnectRequested()
+
+        viewModelScope.launch(Dispatchers.IO) {
+
             uiState = uiState.copy(
                 connecting = true,
-                errorMessage = null
+                connectionError = null
             )
-    
+
             try {
-    
+
                 if (!holfuyDevice.connect()) {
-    
+
                     uiState = uiState.copy(
-                        errorMessage = "Connection failed"
+                        connectionError = "Connection failed"
                     )
                 }
             }
             catch (e: Exception) {
-    
+
                 Log.e(
                     TAG,
                     "Connect failed",
                     e
                 )
-    
+
+                diagnosticLogger.recordUnexpectedException(
+                    "connect",
+                    e
+                )
+
                 uiState = uiState.copy(
-                    errorMessage = e.message
+                    connectionError = "Connection failed"
                 )
             }
             finally {
-    
+
                 uiState = uiState.copy(
                     connecting = false
                 )
             }
         }
     }
-    
+
     fun updateFirmware()
     {
-        val bytes = firmwareBytes ?: return
-    
+        val selectedFirmware =
+            uiState.selectedFirmware
+                ?: return
+
+        val firmware =
+            selectedFirmware.file
+
+        diagnosticLogger.recordFirmwareUpdateRequested(
+            firmware.name
+        )
+
         viewModelScope.launch(Dispatchers.IO) {
-    
+
             try {
-    
+
                 Log.d(
                     TAG,
                     "updateFirmware() called"
                 )
-    
+
                 DeviceRepository.setUpdateInProgress(
                     true
                 )
-    
+
                 DeviceRepository.setUpdateProgress(
                     0
                 )
-    
+
                 uiState = uiState.copy(
-                    updateCompleted = false
+                    updateCompleted = false,
+                    firmwareUpdateError = null
                 )
-    
+
+                val bytes =
+                    try {
+
+                        firmware
+                            .openInputStream()
+                            .use { input ->
+                                input.readBytes()
+                            }
+
+                    } catch (e: Exception) {
+
+                        Log.e(
+                            TAG,
+                            "Unable to load firmware: " +
+                                firmware.name,
+                            e
+                        )
+
+                        diagnosticLogger.recordFirmwareFileOpenFailed(
+                            firmware.name
+                        )
+
+                        diagnosticLogger.recordFirmwareUnavailable(
+                            firmware.name
+                        )
+
+                        uiState = uiState.copy(
+                            firmwareUpdateError =
+                                "Unable to open the selected " +
+                                    "firmware file."
+                        )
+
+                        return@launch
+                    }
+
+                Log.i(
+                    TAG,
+                    "Loaded firmware: ${firmware.name} " +
+                        "(${bytes.size} bytes)"
+                )
+
+                diagnosticLogger.recordFirmwareFileOpened(
+                    firmware.name,
+                    bytes.size
+                )
+
                 val success =
                     holfuyDevice.updateFirmware(
                         bytes
                     ) { progress ->
-    
+
                         DeviceRepository.setUpdateProgress(
                             progress
-                        )   
+                        )
                     }
-    
+
                 uiState = uiState.copy(
-                    updateCompleted = success
+                    updateCompleted = success,
+                    firmwareUpdateError =
+                        if (success) null
+                        else FIRMWARE_UPDATE_FAILURE_MESSAGE
                 )
-    
+
                 Log.i(
                     TAG,
                     "updateFirmware success=$success"
                 )
+
             }
             catch (e: Exception) {
-    
+
                 Log.e(
                     TAG,
                     "Firmware update failed",
                     e
                 )
-    
+
+                diagnosticLogger.recordUnexpectedException(
+                    "firmware update",
+                    e
+                )
+
                 uiState = uiState.copy(
-                    errorMessage = e.message
+                    updateCompleted = false,
+                    firmwareUpdateError =
+                        FIRMWARE_UPDATE_FAILURE_MESSAGE
                 )
             }
             finally {
-    
+
                 DeviceRepository.setUpdateInProgress(
                     false
                 )
-    
+
                 Log.d(
                     TAG,
-                    "DeviceRepository state=${DeviceRepository.state}"
+                    "DeviceRepository state=" +
+                        DeviceRepository.state
                 )
             }
         }
     }
-    
+
     fun clearTransientStatus()
     {
         uiState = uiState.copy(

@@ -13,4 +13,11 @@ class AndroidUsbDeviceProvider(
             .values
             .firstOrNull(HolfuyUsb::isSupported)
     }
+
+    override fun hasPermission(
+        device: UsbDevice
+    ): Boolean
+    {
+        return usbManager.hasPermission(device)
+    }
 }

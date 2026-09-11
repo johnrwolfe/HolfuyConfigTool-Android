@@ -27,7 +27,7 @@ Licensed under the Apache License, Version 2.0. See the LICENSE file for details
 * Modern Jetpack Compose user interface
 * Automatic detection of supported Holfuy weather stations
 * Compatible with Android 8.0 (API 26) and later
-* Tested on Android 8, 12, 14, and 16
+* Tested on Android 8.1, 12, 15, and 16
 
 ## Requirements
 

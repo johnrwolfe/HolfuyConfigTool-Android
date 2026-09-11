@@ -1,20 +1,35 @@
 package com.holfuy.configtool.ui.viewmodel
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.holfuy.configtool.device.HolfuyDevice
+import com.holfuy.configtool.diagnostics.DiagnosticLogger
+import com.holfuy.configtool.firmware.FirmwareRepository
+import com.holfuy.configtool.firmware.FirmwareSelectionStore
+import com.holfuy.configtool.usb.UsbDeviceProvider
 
 class MainViewModelFactory(
+    private val application: Application,
     private val holfuyDevice: HolfuyDevice,
-) : ViewModelProvider.Factory {
-
+    private val usbDeviceProvider: UsbDeviceProvider,
+    private val firmwareRepository: FirmwareRepository,
+    private val firmwareSelectionStore: FirmwareSelectionStore,
+    private val diagnosticLogger: DiagnosticLogger
+) : ViewModelProvider.Factory
+{
     override fun <T : ViewModel> create(
         modelClass: Class<T>
     ): T
     {
         @Suppress("UNCHECKED_CAST")
         return MainViewModel(
-            holfuyDevice
+            application,
+            holfuyDevice,
+            usbDeviceProvider,
+            firmwareRepository,
+            firmwareSelectionStore,
+            diagnosticLogger
         ) as T
     }
 }
