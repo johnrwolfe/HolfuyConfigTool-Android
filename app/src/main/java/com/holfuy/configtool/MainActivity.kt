@@ -306,6 +306,8 @@ class MainActivity : ComponentActivity()
                 (application as HolfuyApplication)
                     .diagnosticLogger
                     .recordUsbAttached()
+                    
+                DeviceRepository.clearUpdateResult()
 
                 activityViewModel.refreshUsbState()
             }

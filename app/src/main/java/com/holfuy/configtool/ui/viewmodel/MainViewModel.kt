@@ -219,25 +219,25 @@ class MainViewModel(
     {
         val usbDevice =
             usbDeviceProvider.findDevice()
-
+    
         val permissionGranted =
             usbDevice?.let {
                 usbDeviceProvider.hasPermission(it)
             } ?: false
-
+    
         DeviceRepository.setAttached(
             usbDevice != null
         )
-
+    
         DeviceRepository.setPermissionGranted(
             permissionGranted
         )
-
+    
         if (usbDevice == null) {
             DeviceRepository.clearConnectionState()
         }
     }
-
+    
     fun setUsbPermissionGranted(
         granted: Boolean
     )
@@ -253,27 +253,27 @@ class MainViewModel(
             TAG,
             "onUsbDetached()"
         )
-
+    
         val updateInProgress =
             DeviceRepository.state.updateInProgress
-
+    
         holfuyDevice.onUsbDetached()
-
-        if (updateInProgress) {
-            diagnosticLogger.recordFirmwareUpdateInterrupted()
-
-            _uiState.update {
-                it.copy(
-                    updateCompleted = false,
-                    firmwareUpdateError =
-                        FIRMWARE_UPDATE_FAILURE_MESSAGE
-                )
-            }
-        }
-
+    
         DeviceRepository.clearConnectionState()
-
-        if (!updateInProgress) {
+    
+        if (updateInProgress) {
+    
+            diagnosticLogger.recordFirmwareUpdateInterrupted()
+    
+            DeviceRepository.setUpdateCompleted(
+                false
+            )
+    
+            DeviceRepository.setFirmwareUpdateError(
+                FIRMWARE_UPDATE_FAILURE_MESSAGE
+            )
+    
+        } else {
             clearTransientStatus()
         }
     }
@@ -337,140 +337,139 @@ class MainViewModel(
         val selectedFirmware =
             _uiState.value.selectedFirmware
                 ?: return
-
+    
         val firmware =
             selectedFirmware.file
-
+    
         diagnosticLogger.recordFirmwareUpdateRequested(
             firmware.name
         )
-
+    
         viewModelScope.launch(Dispatchers.IO) {
-
+    
             try {
-
+    
                 Log.d(
                     TAG,
                     "updateFirmware() called"
                 )
-
+    
                 DeviceRepository.setUpdateInProgress(
                     true
                 )
-
+    
                 DeviceRepository.setUpdateProgress(
                     0
                 )
-
-                _uiState.update {
-                    it.copy(
-                        updateCompleted = false,
-                        firmwareUpdateError = null
-                    )
-                }
-
+    
+                DeviceRepository.setUpdateCompleted(
+                    false
+                )
+    
+                DeviceRepository.setFirmwareUpdateError(
+                    null
+                )
+    
                 val bytes =
                     try {
-
+    
                         firmware
                             .openInputStream()
                             .use { input ->
                                 input.readBytes()
                             }
-
+    
                     } catch (e: Exception) {
-
+    
                         Log.e(
                             TAG,
                             "Unable to load firmware: " +
                                 firmware.name,
                             e
                         )
-
+    
                         diagnosticLogger.recordFirmwareFileOpenFailed(
                             firmware.name
                         )
-
+    
                         diagnosticLogger.recordFirmwareUnavailable(
                             firmware.name
                         )
-
-                        _uiState.update {
-                            it.copy(
-                                firmwareUpdateError =
-                                    "Unable to open the selected " +
-                                        "firmware file."
-                            )
-                        }
-
+    
+                        DeviceRepository.setFirmwareUpdateError(
+                            "Unable to open the selected " +
+                                "firmware file."
+                        )
+    
                         return@launch
                     }
-
+    
                 Log.i(
                     TAG,
                     "Loaded firmware: ${firmware.name} " +
                         "(${bytes.size} bytes)"
                 )
-
+    
                 diagnosticLogger.recordFirmwareFileOpened(
                     firmware.name,
                     bytes.size
                 )
-
+    
                 val success =
                     holfuyDevice.updateFirmware(
                         bytes
                     ) { progress ->
-
+    
                         DeviceRepository.setUpdateProgress(
                             progress
                         )
                     }
-
-                _uiState.update {
-                    it.copy(
-                        updateCompleted = success,
-                        firmwareUpdateError =
-                            if (success)
-                                null
-                            else
-                                FIRMWARE_UPDATE_FAILURE_MESSAGE
-                    )
-                }
-
+    
+                DeviceRepository.setUpdateCompleted(
+                    success
+                )
+    
+                DeviceRepository.setFirmwareUpdateError(
+                    if (success)
+                        null
+                    else
+                        FIRMWARE_UPDATE_FAILURE_MESSAGE
+                )
+    
                 Log.i(
                     TAG,
                     "updateFirmware success=$success"
                 )
-
+    
             }
             catch (e: Exception) {
-
+    
                 Log.e(
                     TAG,
                     "Firmware update failed",
                     e
                 )
-
+    
                 diagnosticLogger.recordUnexpectedException(
                     "firmware update",
                     e
                 )
-
-                _uiState.update {
-                    it.copy(
-                        updateCompleted = false,
-                        firmwareUpdateError =
-                            FIRMWARE_UPDATE_FAILURE_MESSAGE
-                    )
-                }
+    
+                DeviceRepository.setUpdateCompleted(
+                    false
+                )
+    
+                DeviceRepository.setFirmwareUpdateError(
+                    FIRMWARE_UPDATE_FAILURE_MESSAGE
+                )
+    
             }
             finally {
-
+    
                 DeviceRepository.setUpdateInProgress(
                     false
                 )
-
+    
                 Log.d(
                     TAG,
                     "DeviceRepository state=" +
@@ -484,9 +483,9 @@ class MainViewModel(
     {
         _uiState.update {
             it.copy(
-                updateCompleted = false,
                 firmwareSelectionError = null
             )
         }
     }
+
 }

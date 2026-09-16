@@ -5,5 +5,7 @@ data class DeviceState(
     val permissionGranted: Boolean = false,
     val connected: Boolean = false,
     val updateInProgress: Boolean = false,
-    val updateProgress: Int = 0
+    val updateProgress: Int = 0,
+    val updateCompleted: Boolean = false,
+    val firmwareUpdateError: String? = null
 )

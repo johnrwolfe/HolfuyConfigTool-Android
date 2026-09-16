@@ -77,6 +77,38 @@ object DeviceRepository
         }
     }
 
+    fun setUpdateCompleted(
+        completed: Boolean
+    )
+    {
+        _state.update {
+            it.copy(
+                updateCompleted = completed
+            )
+        }
+    }
+
+    fun setFirmwareUpdateError(
+        error: String?
+    )
+    {
+        _state.update {
+            it.copy(
+                firmwareUpdateError = error
+            )
+        }
+    }
+
+    fun clearUpdateResult()
+    {
+        _state.update {
+            it.copy(
+                updateCompleted = false,
+                firmwareUpdateError = null
+            )
+        }
+    }
+
     fun clearConnectionState()
     {
         state = state.copy(
@@ -84,7 +116,9 @@ object DeviceRepository
             permissionGranted = false,
             connected = false,
             updateInProgress = false,
-            updateProgress = 0
+            updateProgress = 0,
+            updateCompleted = false,
+            firmwareUpdateError = null
         )
     }
 }

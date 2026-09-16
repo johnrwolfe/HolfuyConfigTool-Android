@@ -301,7 +301,6 @@ fun MainScreen(
 
                 when {
                     deviceState.updateInProgress -> {
-                
                         LinearProgressIndicator(
                             progress = {
                                 deviceState.updateProgress / 100f
@@ -318,23 +317,19 @@ fun MainScreen(
                         )
                     }
                 
-                    uiState.updateCompleted -> {
-                
+                    deviceState.updateCompleted -> {
                         Text(
                             "Firmware update completed successfully."
                         )
                     }
                 
-                    uiState.firmwareUpdateError != null -> {
-                
+                    deviceState.firmwareUpdateError != null -> {
                         Text(
-                            uiState.firmwareUpdateError
-                                ?: ""
+                            deviceState.firmwareUpdateError ?: ""
                         )
                     }
                 
                     else -> {
-                
                         Text(
                             "No update in progress."
                         )
